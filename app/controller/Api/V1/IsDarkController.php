@@ -67,6 +67,8 @@ class IsDarkController
                 'has_sunset' => $result['has_sunset'],
                 'is_polar_day' => $result['is_polar_day'],
                 'is_polar_night' => $result['is_polar_night'],
+                'next_change' => $result['next_change'],
+                'next_change_at' => $result['next_change_at'],
             ]);
         }
 
