@@ -13,51 +13,64 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
+            background: #1a1a2e;
+            height: 100vh;
+            margin: 0;
             color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .subtitle {
-            color: #888;
-            margin-bottom: 30px;
+            overflow: hidden;
         }
 
         .container {
             width: 100%;
-            max-width: 800px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 30px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: none;
+            backdrop-filter: none;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px 20px;
+            background: rgba(26, 26, 46, 0.9);
             backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-wrap: wrap;
+        }
+
+        .top-bar h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .input-row {
+            display: flex;
+            flex: 1;
+            gap: 10px;
+            align-items: center;
+            min-width: 300px;
         }
 
         .input-group {
             display: flex;
             gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
 
         input[type="text"], input[type="number"] {
-            flex: 1;
-            min-width: 120px;
-            padding: 12px 16px;
+            width: 100%;
+            padding: 10px 14px;
             border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
+            border-radius: 8px;
             background: rgba(0,0,0,0.3);
             color: #fff;
-            font-size: 16px;
+            font-size: 15px;
             outline: none;
             transition: border-color 0.3s;
         }
@@ -67,14 +80,15 @@
         }
 
         button {
-            padding: 12px 24px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             background: #4a9eff;
             color: #fff;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
             transition: background 0.3s;
+            white-space: nowrap;
         }
 
         button:hover {
@@ -90,55 +104,72 @@
         }
 
         .map-container {
+            flex: 1;
             width: 100%;
-            height: 400px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            margin: 20px 0;
+            background: #000;
             position: relative;
             overflow: hidden;
+            cursor: crosshair;
+            user-select: none;
         }
 
-        #map {
+        #map-viewport {
+            width: 950px;
+            height: 620px;
+            transform-origin: 0 0;
+            transition: transform 0.05s ease-out;
+        }
+
+        #map-viewport svg {
             width: 100%;
             height: 100%;
-            cursor: crosshair;
         }
 
-        #map path {
+        #map-viewport path {
             fill: #2a3f5f;
             stroke: #4a6fa5;
             stroke-width: 0.5;
             transition: fill 0.3s;
         }
 
-        #map path:hover {
+        #map-viewport path:hover {
             fill: #4a6fa5;
         }
 
         .map-controls {
             position: absolute;
-            right: 10px;
-            top: 10px;
+            right: 20px;
+            top: 20px;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
+            z-index: 10;
         }
 
         .map-controls button {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             padding: 0;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .result {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
             text-align: center;
-            padding: 40px;
+            padding: 20px 40px;
             border-radius: 15px;
-            margin-top: 20px;
-            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            margin: 0;
+            min-width: 300px;
         }
 
         .result.yes {
@@ -216,28 +247,31 @@
     </style>
 </head>
 <body>
-    <h1>Is It Dark?</h1>
-    <p class="subtitle">Check if it's dark anywhere in the world</p>
-
     <div class="container">
-        <div class="input-group autocomplete">
-            <input type="text" id="cityInput" placeholder="Search city..." autocomplete="off">
-            <div id="autocompleteList" class="autocomplete-items" style="display:none;"></div>
+        <div class="top-bar">
+            <h1>Is It Dark?</h1>
+            
+            <div class="input-row">
+                <div class="input-group autocomplete" style="flex: 2;">
+                    <input type="text" id="cityInput" placeholder="Search city..." autocomplete="off">
+                    <div id="autocompleteList" class="autocomplete-items" style="display:none;"></div>
+                </div>
+
+                <div class="input-group" style="flex: 1;">
+                    <input type="number" id="latInput" placeholder="Lat" step="0.01" min="-90" max="90">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <input type="number" id="lngInput" placeholder="Lng" step="0.01" min="-180" max="180">
+                </div>
+
+                <button onclick="checkLocation()">Check</button>
+                <button class="secondary" onclick="useMyLocation()" title="Use My Location">📍</button>
+                <button class="secondary" onclick="clearAll()" title="Clear">✕</button>
+            </div>
         </div>
 
-        <div class="input-group">
-            <input type="number" id="latInput" placeholder="Latitude" step="0.01" min="-90" max="90">
-            <input type="number" id="lngInput" placeholder="Longitude" step="0.01" min="-180" max="180">
-            <button onclick="checkLocation()">Check</button>
-        </div>
-
-        <div class="input-group">
-            <button class="secondary" onclick="useMyLocation()">📍 Use My Location</button>
-            <button class="secondary" onclick="clearAll()">Clear</button>
-        </div>
-
-        <div class="map-container">
-            <div id="map"></div>
+        <div class="map-container" id="mapContainer">
+            <div id="map-viewport"></div>
             <div id="marker" class="marker" style="display:none;"></div>
             <div class="map-controls">
                 <button onclick="zoomMap(1.2)">+</button>
@@ -255,6 +289,12 @@
 
     <script>
         let currentScale = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        let dragDistance = 0;
         let currentLat = 0;
         let currentLng = 0;
         let cities = [];
@@ -287,22 +327,123 @@
                     const svgElement = doc.querySelector('svg');
                     if (svgElement) {
                         svgElement.id = 'map';
-                        svgElement.style.width = '100%';
-                        svgElement.style.height = '100%';
-                        svgElement.style.cursor = 'crosshair';
-                        svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-                        document.getElementById('map').innerHTML = '';
-                        document.getElementById('map').appendChild(svgElement);
+                        svgElement.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+                        const viewport = document.getElementById('map-viewport');
+                        viewport.innerHTML = '';
+                        viewport.appendChild(svgElement);
                         svgElement.addEventListener('click', onMapClick);
+                        
+                        // Add pan/zoom listeners
+                        initMapInteractions();
+                        
+                        // Initial fit
+                        fitMapToContainer();
                     }
                 })
                 .catch(err => {
                     console.error('Failed to load map:', err);
-                    document.getElementById('map').innerHTML = '<div style="text-align:center;padding-top:180px;color:#666;">Failed to load map</div>';
+                    document.getElementById('map-viewport').innerHTML = '<div style="text-align:center;padding-top:180px;color:#666;">Failed to load map</div>';
                 });
         }
 
+        function fitMapToContainer() {
+            const container = document.getElementById('mapContainer');
+            const rect = container.getBoundingClientRect();
+            
+            const scaleX = rect.width / mapWidth;
+            const scaleY = rect.height / mapHeight;
+            
+            // Choose the larger scale to fill the screen
+            currentScale = Math.max(scaleX, scaleY);
+            
+            // Center the map
+            offsetX = (rect.width - mapWidth * currentScale) / 2;
+            offsetY = (rect.height - mapHeight * currentScale) / 2;
+            
+            updateTransform();
+        }
+
+        function initMapInteractions() {
+            const container = document.getElementById('mapContainer');
+            
+            container.addEventListener('mousedown', e => {
+                if (e.button === 0) {
+                    isDragging = true;
+                    dragDistance = 0;
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+                    container.style.cursor = 'grabbing';
+                }
+            });
+
+            window.addEventListener('mousemove', e => {
+                if (isDragging) {
+                    const dx = e.clientX - lastMouseX;
+                    const dy = e.clientY - lastMouseY;
+                    dragDistance += Math.abs(dx) + Math.abs(dy);
+                    offsetX += dx;
+                    offsetY += dy;
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+                    updateTransform();
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+                container.style.cursor = 'crosshair';
+            });
+
+            container.addEventListener('wheel', e => {
+                e.preventDefault();
+                const rect = container.getBoundingClientRect();
+                const centerX = e.clientX - rect.left;
+                const centerY = e.clientY - rect.top;
+                const factor = e.deltaY > 0 ? 0.9 : 1.1;
+                zoomMap(factor, centerX, centerY);
+            }, { passive: false });
+        }
+
+        function updateTransform() {
+            const container = document.getElementById('mapContainer');
+            const rect = container.getBoundingClientRect();
+            
+            const scaledMapWidth = mapWidth * currentScale;
+            const scaledMapHeight = mapHeight * currentScale;
+
+            // Restrict offsetX
+            if (scaledMapWidth > rect.width) {
+                // Map is wider than container, we can pan between 0 and (width - scaledWidth)
+                // But since translate is negative, we want values between (rect.width - scaledMapWidth) and 0.
+                offsetX = Math.min(0, Math.max(rect.width - scaledMapWidth, offsetX));
+            } else {
+                // Map is narrower than container: center it
+                offsetX = (rect.width - scaledMapWidth) / 2;
+            }
+
+            // Restrict offsetY
+            if (scaledMapHeight > rect.height) {
+                // Map is taller than container, we can pan between 0 and (height - scaledHeight)
+                offsetY = Math.min(0, Math.max(rect.height - scaledMapHeight, offsetY));
+            } else {
+                // Map is shorter than container: center it
+                offsetY = (rect.height - scaledMapHeight) / 2;
+            }
+
+            const viewport = document.getElementById('map-viewport');
+            viewport.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${currentScale})`;
+            
+            // Re-position marker to stay at correct coordinates relative to the panned/zoomed map
+            const lat = parseFloat(document.getElementById('latInput').value);
+            const lng = parseFloat(document.getElementById('lngInput').value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                updateMarkerFromCoords(lat, lng);
+            }
+        }
+
         function onMapClick(e) {
+            if (dragDistance > 5) return;
+
             const svg = document.getElementById('map');
             const rect = svg.getBoundingClientRect();
             const x = (e.clientX - rect.left) / rect.width * mapWidth;
@@ -321,9 +462,10 @@
 
         function updateMarker(x, y) {
             const marker = document.getElementById('marker');
-            const mapContainer = document.querySelector('.map-container');
+            const mapContainer = document.getElementById('mapContainer');
             const rect = mapContainer.getBoundingClientRect();
             const mapSvg = document.getElementById('map');
+            if (!mapSvg) return;
             const svgRect = mapSvg.getBoundingClientRect();
             
             marker.style.display = 'block';
@@ -336,6 +478,7 @@
             const y = ((90 - lat) / 180) * mapHeight;
             
             const mapSvg = document.getElementById('map');
+            if (!mapSvg) return;
             const rect = mapSvg.getBoundingClientRect();
             const screenX = (x / mapWidth) * rect.width;
             const screenY = (y / mapHeight) * rect.height;
@@ -343,11 +486,28 @@
             updateMarker(screenX, screenY);
         }
 
-        function zoomMap(factor) {
+        function zoomMap(factor, centerX, centerY) {
+            const container = document.getElementById('mapContainer');
+            const rect = container.getBoundingClientRect();
+            
+            if (centerX === undefined) centerX = rect.width / 2;
+            if (centerY === undefined) centerY = rect.height / 2;
+
+            const oldScale = currentScale;
+            
+            // Calculate minimum scale to ensure it fills the viewport
+            const minScaleX = rect.width / mapWidth;
+            const minScaleY = rect.height / mapHeight;
+            const minScale = Math.max(minScaleX, minScaleY);
+            
             currentScale *= factor;
-            currentScale = Math.max(0.5, Math.min(5, currentScale));
-            const svg = document.getElementById('map');
-            svg.style.transform = `scale(${currentScale})`;
+            currentScale = Math.max(minScale, Math.min(10, currentScale));
+            
+            const actualFactor = currentScale / oldScale;
+            offsetX = centerX - (centerX - offsetX) * actualFactor;
+            offsetY = centerY - (centerY - offsetY) * actualFactor;
+            
+            updateTransform();
         }
 
         // Location functions
