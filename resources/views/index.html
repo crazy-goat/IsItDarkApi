@@ -10,7 +10,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -21,18 +21,18 @@
             align-items: center;
             padding: 20px;
         }
-        
+
         h1 {
             font-size: 3rem;
             margin-bottom: 10px;
             text-align: center;
         }
-        
+
         .subtitle {
             color: #888;
             margin-bottom: 30px;
         }
-        
+
         .container {
             width: 100%;
             max-width: 800px;
@@ -41,14 +41,14 @@
             padding: 30px;
             backdrop-filter: blur(10px);
         }
-        
+
         .input-group {
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
             flex-wrap: wrap;
         }
-        
+
         input[type="text"], input[type="number"] {
             flex: 1;
             min-width: 120px;
@@ -61,11 +61,11 @@
             outline: none;
             transition: border-color 0.3s;
         }
-        
+
         input[type="text"]:focus, input[type="number"]:focus {
             border-color: #4a9eff;
         }
-        
+
         button {
             padding: 12px 24px;
             border: none;
@@ -76,19 +76,19 @@
             cursor: pointer;
             transition: background 0.3s;
         }
-        
+
         button:hover {
             background: #3a8eef;
         }
-        
+
         button.secondary {
             background: rgba(255,255,255,0.1);
         }
-        
+
         button.secondary:hover {
             background: rgba(255,255,255,0.2);
         }
-        
+
         .map-container {
             width: 100%;
             height: 400px;
@@ -98,13 +98,24 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         #map {
             width: 100%;
             height: 100%;
             cursor: crosshair;
         }
-        
+
+        #map path {
+            fill: #2a3f5f;
+            stroke: #4a6fa5;
+            stroke-width: 0.5;
+            transition: fill 0.3s;
+        }
+
+        #map path:hover {
+            fill: #4a6fa5;
+        }
+
         .map-controls {
             position: absolute;
             right: 10px;
@@ -113,7 +124,7 @@
             flex-direction: column;
             gap: 5px;
         }
-        
+
         .map-controls button {
             width: 40px;
             height: 40px;
@@ -121,7 +132,7 @@
             font-size: 20px;
             font-weight: bold;
         }
-        
+
         .result {
             text-align: center;
             padding: 40px;
@@ -129,41 +140,41 @@
             margin-top: 20px;
             transition: all 0.3s;
         }
-        
+
         .result.yes {
             background: linear-gradient(135deg, #2d1b69 0%, #1a0f3c 100%);
         }
-        
+
         .result.no {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         }
-        
+
         .result-text {
             font-size: 4rem;
             font-weight: bold;
             margin-bottom: 10px;
         }
-        
+
         .result-info {
             font-size: 1.2rem;
             color: rgba(255,255,255,0.8);
         }
-        
+
         .loading {
             opacity: 0.5;
             pointer-events: none;
         }
-        
+
         .error {
             color: #ff6b6b;
             margin-top: 10px;
             text-align: center;
         }
-        
+
         .autocomplete {
             position: relative;
         }
-        
+
         .autocomplete-items {
             position: absolute;
             top: 100%;
@@ -175,60 +186,70 @@
             overflow-y: auto;
             z-index: 100;
         }
-        
+
         .autocomplete-item {
             padding: 10px 16px;
             cursor: pointer;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        
+
         .autocomplete-item:hover {
             background: rgba(255,255,255,0.1);
         }
-        
+
         .autocomplete-item:last-child {
             border-bottom: none;
+        }
+
+        .marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff4444;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(255,68,68,0.5);
         }
     </style>
 </head>
 <body>
     <h1>Is It Dark?</h1>
     <p class="subtitle">Check if it's dark anywhere in the world</p>
-    
+
     <div class="container">
         <div class="input-group autocomplete">
             <input type="text" id="cityInput" placeholder="Search city..." autocomplete="off">
             <div id="autocompleteList" class="autocomplete-items" style="display:none;"></div>
         </div>
-        
+
         <div class="input-group">
             <input type="number" id="latInput" placeholder="Latitude" step="0.01" min="-90" max="90">
             <input type="number" id="lngInput" placeholder="Longitude" step="0.01" min="-180" max="180">
             <button onclick="checkLocation()">Check</button>
         </div>
-        
+
         <div class="input-group">
             <button class="secondary" onclick="useMyLocation()">📍 Use My Location</button>
             <button class="secondary" onclick="clearAll()">Clear</button>
         </div>
-        
+
         <div class="map-container">
-            <svg id="map" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
-                <!-- World map will be loaded here -->
-                <rect width="1000" height="500" fill="#0a0a1a"/>
-                <text x="500" y="250" text-anchor="middle" fill="#666" font-size="20">Loading map...</text>
-            </svg>
+            <div id="map"></div>
+            <div id="marker" class="marker" style="display:none;"></div>
             <div class="map-controls">
                 <button onclick="zoomMap(1.2)">+</button>
                 <button onclick="zoomMap(0.8)">−</button>
             </div>
         </div>
-        
+
         <div id="result" class="result" style="display:none;">
             <div class="result-text" id="resultText"></div>
             <div class="result-info" id="resultInfo"></div>
         </div>
-        
+
         <div id="error" class="error"></div>
     </div>
 
@@ -237,7 +258,9 @@
         let currentLat = 0;
         let currentLng = 0;
         let cities = [];
-        
+        const mapWidth = 950;
+        const mapHeight = 620;
+
         // Load cities data
         async function loadCities() {
             try {
@@ -249,14 +272,14 @@
                 console.error('Failed to load cities:', e);
             }
         }
-        
+
         // Initialize
         loadCities();
         loadMap();
-        
+
         // Map functions
         function loadMap() {
-            fetch('/map/world.svg')
+            fetch('/map/world-detailed.svg')
                 .then(r => r.text())
                 .then(svg => {
                     const parser = new DOMParser();
@@ -267,90 +290,110 @@
                         svgElement.style.width = '100%';
                         svgElement.style.height = '100%';
                         svgElement.style.cursor = 'crosshair';
-                        document.getElementById('map').replaceWith(svgElement);
+                        svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                        document.getElementById('map').innerHTML = '';
+                        document.getElementById('map').appendChild(svgElement);
                         svgElement.addEventListener('click', onMapClick);
                     }
                 })
-                .catch(() => {
-                    // Fallback - simple world map
-                    createFallbackMap();
+                .catch(err => {
+                    console.error('Failed to load map:', err);
+                    document.getElementById('map').innerHTML = '<div style="text-align:center;padding-top:180px;color:#666;">Failed to load map</div>';
                 });
         }
-        
-        function createFallbackMap() {
-            const svg = document.getElementById('map');
-            svg.innerHTML = `
-                <rect width="1000" height="500" fill="#0a0a1a"/>
-                <ellipse cx="500" cy="250" rx="450" ry="200" fill="#1a1a3a" stroke="#333" stroke-width="2"/>
-                <text x="500" y="250" text-anchor="middle" fill="#666">World Map</text>
-            `;
-            svg.addEventListener('click', onMapClick);
-        }
-        
+
         function onMapClick(e) {
-            const svg = e.currentTarget;
+            const svg = document.getElementById('map');
             const rect = svg.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width * 1000;
-            const y = (e.clientY - rect.top) / rect.height * 500;
-            
-            // Convert to lat/lng (simple equirectangular projection)
-            currentLng = (x / 1000 * 360) - 180;
-            currentLat = 90 - (y / 500 * 180);
-            
+            const x = (e.clientX - rect.left) / rect.width * mapWidth;
+            const y = (e.clientY - rect.top) / rect.height * mapHeight;
+
+            // Convert to lat/lng (equirectangular projection)
+            currentLng = (x / mapWidth * 360) - 180;
+            currentLat = 90 - (y / mapHeight * 180);
+
             document.getElementById('latInput').value = currentLat.toFixed(2);
             document.getElementById('lngInput').value = currentLng.toFixed(2);
-            
+
+            updateMarker(e.clientX - rect.left, e.clientY - rect.top);
             checkLocation();
         }
-        
+
+        function updateMarker(x, y) {
+            const marker = document.getElementById('marker');
+            const mapContainer = document.querySelector('.map-container');
+            const rect = mapContainer.getBoundingClientRect();
+            const mapSvg = document.getElementById('map');
+            const svgRect = mapSvg.getBoundingClientRect();
+            
+            marker.style.display = 'block';
+            marker.style.left = (svgRect.left - rect.left + x) + 'px';
+            marker.style.top = (svgRect.top - rect.top + y) + 'px';
+        }
+
+        function updateMarkerFromCoords(lat, lng) {
+            const x = ((lng + 180) / 360) * mapWidth;
+            const y = ((90 - lat) / 180) * mapHeight;
+            
+            const mapSvg = document.getElementById('map');
+            const rect = mapSvg.getBoundingClientRect();
+            const screenX = (x / mapWidth) * rect.width;
+            const screenY = (y / mapHeight) * rect.height;
+            
+            updateMarker(screenX, screenY);
+        }
+
         function zoomMap(factor) {
             currentScale *= factor;
             currentScale = Math.max(0.5, Math.min(5, currentScale));
             const svg = document.getElementById('map');
             svg.style.transform = `scale(${currentScale})`;
         }
-        
+
         // Location functions
         function useMyLocation() {
             if (!navigator.geolocation) {
                 showError('Geolocation is not supported');
                 return;
             }
-            
+
             navigator.geolocation.getCurrentPosition(
                 pos => {
-                    document.getElementById('latInput').value = pos.coords.latitude.toFixed(2);
-                    document.getElementById('lngInput').value = pos.coords.longitude.toFixed(2);
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    document.getElementById('latInput').value = lat.toFixed(2);
+                    document.getElementById('lngInput').value = lng.toFixed(2);
+                    updateMarkerFromCoords(lat, lng);
                     checkLocation();
                 },
                 err => showError('Could not get location: ' + err.message)
             );
         }
-        
+
         async function checkLocation() {
             const lat = parseFloat(document.getElementById('latInput').value);
             const lng = parseFloat(document.getElementById('lngInput').value);
-            
+
             if (isNaN(lat) || isNaN(lng)) {
                 showError('Please enter valid coordinates');
                 return;
             }
-            
+
             hideError();
             document.getElementById('result').classList.add('loading');
-            
+
             try {
                 const response = await fetch(`/api/v1/is-dark?lat=${lat}&lng=${lng}`, {
                     headers: { 'Accept': 'application/json' }
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     showError(data.message || 'Error checking location');
                     return;
                 }
-                
+
                 showResult(data);
             } catch (e) {
                 showError('Network error');
@@ -358,73 +401,75 @@
                 document.getElementById('result').classList.remove('loading');
             }
         }
-        
+
         function showResult(data) {
             const resultDiv = document.getElementById('result');
             const resultText = document.getElementById('resultText');
             const resultInfo = document.getElementById('resultInfo');
-            
+
             resultDiv.style.display = 'block';
             resultDiv.className = 'result ' + (data.is_dark ? 'yes' : 'no');
             resultText.textContent = data.is_dark ? 'YES' : 'NO';
-            
+
             const sunrise = new Date(data.sunrise).toLocaleTimeString();
             const sunset = new Date(data.sunset).toLocaleTimeString();
             resultInfo.innerHTML = `Sunrise: ${sunrise}<br>Sunset: ${sunset}`;
         }
-        
+
         function clearAll() {
             document.getElementById('cityInput').value = '';
             document.getElementById('latInput').value = '';
             document.getElementById('lngInput').value = '';
             document.getElementById('result').style.display = 'none';
+            document.getElementById('marker').style.display = 'none';
             hideError();
         }
-        
+
         function showError(msg) {
             document.getElementById('error').textContent = msg;
         }
-        
+
         function hideError() {
             document.getElementById('error').textContent = '';
         }
-        
+
         // Autocomplete
         const cityInput = document.getElementById('cityInput');
         const autocompleteList = document.getElementById('autocompleteList');
-        
+
         cityInput.addEventListener('input', function() {
             const val = this.value.toLowerCase();
             if (!val) {
                 autocompleteList.style.display = 'none';
                 return;
             }
-            
-            const matches = cities.filter(c => 
+
+            const matches = cities.filter(c =>
                 c.name.toLowerCase().includes(val)
             ).slice(0, 10);
-            
+
             if (matches.length === 0) {
                 autocompleteList.style.display = 'none';
                 return;
             }
-            
-            autocompleteList.innerHTML = matches.map(c => 
+
+            autocompleteList.innerHTML = matches.map(c =>
                 `<div class="autocomplete-item" onclick="selectCity('${c.name}', ${c.lat}, ${c.lng})">
                     ${c.name}, ${c.country}
                 </div>`
             ).join('');
             autocompleteList.style.display = 'block';
         });
-        
+
         function selectCity(name, lat, lng) {
             cityInput.value = name;
             document.getElementById('latInput').value = lat.toFixed(2);
             document.getElementById('lngInput').value = lng.toFixed(2);
             autocompleteList.style.display = 'none';
+            updateMarkerFromCoords(lat, lng);
             checkLocation();
         }
-        
+
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.autocomplete')) {
                 autocompleteList.style.display = 'none';
