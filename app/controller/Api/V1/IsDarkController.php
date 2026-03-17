@@ -9,17 +9,11 @@ use support\Response;
 
 class IsDarkController
 {
-    private SunCalcService $sunCalc;
-    private ResponseFormatterService $formatter;
-
-    public function __construct(SunCalcService $sunCalc, ResponseFormatterService $formatter)
-    {
-        $this->sunCalc = $sunCalc;
-        $this->formatter = $formatter;
-    }
-
     public function index(Request $request): Response
     {
+        $sunCalc = new SunCalcService();
+        $formatter = new ResponseFormatterService();
+
         // Pobieramy parametry
         $lat = $request->get('lat');
         $lng = $request->get('lng');
@@ -27,7 +21,7 @@ class IsDarkController
 
         // Walidacja - czy parametry istnieją
         if ($lat === null || $lng === null) {
-            return $this->errorResponse($request, 400, 'Missing required parameters: lat and lng');
+            return $this->errorResponse($request, $formatter, 400, 'Missing required parameters: lat and lng');
         }
 
         // Konwersja na float
@@ -35,18 +29,18 @@ class IsDarkController
         $lng = (float) $lng;
 
         // Zaokrąglenie do 2 miejsc po przecinku
-        $coords = $this->sunCalc->roundCoordinates($lat, $lng);
+        $coords = $sunCalc->roundCoordinates($lat, $lng);
         $lat = $coords['lat'];
         $lng = $coords['lng'];
 
         // Walidacja zakresów
-        $validation = $this->sunCalc->validate($lat, $lng);
+        $validation = $sunCalc->validate($lat, $lng);
         if (!$validation['valid']) {
-            return $this->errorResponse($request, 422, $validation['error']);
+            return $this->errorResponse($request, $formatter, 422, $validation['error']);
         }
 
         // Obliczenia
-        $result = $this->sunCalc->calculate($lat, $lng);
+        $result = $sunCalc->calculate($lat, $lng);
 
         // Przygotowanie odpowiedzi
         $responseData = [
@@ -54,7 +48,7 @@ class IsDarkController
             'sunrise' => $result['sunrise'],
             'sunset' => $result['sunset'],
         ];
-        
+
         // Dodajemy szczegółowe dane jeśli requested
         if ($detailed) {
             $responseData = array_merge($responseData, [
@@ -78,9 +72,9 @@ class IsDarkController
 
         // Formatowanie odpowiedzi
         $acceptHeader = $request->header('Accept', 'application/json');
-        $format = $this->formatter->detectFormat($acceptHeader);
-        $body = $this->formatter->format($responseData, $format);
-        $contentType = $this->formatter->getContentType($format);
+        $format = $formatter->detectFormat($acceptHeader);
+        $body = $formatter->format($responseData, $format);
+        $contentType = $formatter->getContentType($format);
 
         // Headers z cache (ważne do następnej zmiany - sunrise lub sunset)
         $headers = [
@@ -92,20 +86,20 @@ class IsDarkController
         return new Response(200, $headers, $body);
     }
 
-    private function errorResponse(Request $request, int $statusCode, string $message): Response
+    private function errorResponse(Request $request, ResponseFormatterService $formatter, int $statusCode, string $message): Response
     {
         $acceptHeader = $request->header('Accept', 'application/json');
-        $format = $this->formatter->detectFormat($acceptHeader);
-        
+        $format = $formatter->detectFormat($acceptHeader);
+
         $data = [
             'error' => true,
             'status' => $statusCode,
             'message' => $message,
         ];
-        
-        $body = $this->formatter->format($data, $format);
-        $contentType = $this->formatter->getContentType($format);
-        
+
+        $body = $formatter->format($data, $format);
+        $contentType = $formatter->getContentType($format);
+
         return new Response($statusCode, ['Content-Type' => $contentType], $body);
     }
 }
