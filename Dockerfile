@@ -2,13 +2,14 @@ FROM php:8.4-cli-alpine
 
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies and PHP extensions
 RUN apk add --no-cache \
     git \
     unzip \
     curl \
     linux-headers \
-    $PHPIZE_DEPS
+    $PHPIZE_DEPS \
+    && docker-php-ext-install pcntl
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
