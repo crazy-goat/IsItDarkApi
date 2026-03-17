@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<testSuite xmlns="https://xml.phpunit.de/testSuite">
+ <tests>
+  <testClass name="tests\Unit\Service\ResponseFormatterServiceTest" file="/home/decodo/work/IsItDarkApi/tests/Unit/Service/ResponseFormatterServiceTest.php">
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatJson" name="testFormatJson"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatXml" name="testFormatXml"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatYaml" name="testFormatYaml"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatDefaultToJson" name="testFormatDefaultToJson"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatNestedArray" name="testFormatNestedArray"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatBooleanValues" name="testFormatBooleanValues"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testGetContentType" name="testGetContentType"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testDetectFormatJson" name="testDetectFormatJson"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testDetectFormatXml" name="testDetectFormatXml"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testDetectFormatYaml" name="testDetectFormatYaml"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testDetectFormatDefault" name="testDetectFormatDefault"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testXmlEscapesSpecialCharacters" name="testXmlEscapesSpecialCharacters"/>
+   <testMethod id="tests\Unit\Service\ResponseFormatterServiceTest::testYamlEscapesSpecialCharacters" name="testYamlEscapesSpecialCharacters"/>
+  </testClass>
+  <testClass name="tests\Unit\Service\SunCalcServiceTest" file="/home/decodo/work/IsItDarkApi/tests/Unit/Service/SunCalcServiceTest.php">
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testCalculateReturnsRequiredFields" name="testCalculateReturnsRequiredFields"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testCalculateReturnsBooleanIsDark" name="testCalculateReturnsBooleanIsDark"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testCalculateReturnsValidIso8601Dates" name="testCalculateReturnsValidIso8601Dates"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testCalculateReturnsValidTimestamps" name="testCalculateReturnsValidTimestamps"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testCalculateForNorthPole" name="testCalculateForNorthPole"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testCalculateForSouthPole" name="testCalculateForSouthPole"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testRoundCoordinates" name="testRoundCoordinates"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testValidateValidCoordinates" name="testValidateValidCoordinates"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testValidateInvalidLatitudeTooHigh" name="testValidateInvalidLatitudeTooHigh"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testValidateInvalidLatitudeTooLow" name="testValidateInvalidLatitudeTooLow"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testValidateInvalidLongitudeTooHigh" name="testValidateInvalidLongitudeTooHigh"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testValidateInvalidLongitudeTooLow" name="testValidateInvalidLongitudeTooLow"/>
+   <testMethod id="tests\Unit\Service\SunCalcServiceTest::testValidateBoundaryValues" name="testValidateBoundaryValues"/>
+  </testClass>
+  <testClass name="tests\Feature\IsDarkApiTest" file="/home/decodo/work/IsItDarkApi/tests/Feature/IsDarkApiTest.php">
+   <testMethod id="tests\Feature\IsDarkApiTest::testEndpointReturns200WithValidParams" name="testEndpointReturns200WithValidParams"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testEndpointReturnsJsonByDefault" name="testEndpointReturnsJsonByDefault"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testEndpointReturnsXmlWhenRequested" name="testEndpointReturnsXmlWhenRequested"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testEndpointReturnsYamlWhenRequested" name="testEndpointReturnsYamlWhenRequested"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testEndpointReturns400WhenMissingParams" name="testEndpointReturns400WhenMissingParams"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testEndpointReturns400WhenMissingLat" name="testEndpointReturns400WhenMissingLat"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testEndpointReturns400WhenMissingLng" name="testEndpointReturns400WhenMissingLng"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testEndpointReturns422ForInvalidLatitude" name="testEndpointReturns422ForInvalidLatitude"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testEndpointReturns422ForInvalidLongitude" name="testEndpointReturns422ForInvalidLongitude"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testResponseContainsRequiredFields" name="testResponseContainsRequiredFields"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testResponseDoesNotContainExpiresAt" name="testResponseDoesNotContainExpiresAt"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testResponseHasCacheHeaders" name="testResponseHasCacheHeaders"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testCoordinatesAreRoundedToTwoDecimals" name="testCoordinatesAreRoundedToTwoDecimals"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testErrorResponseIsJsonByDefault" name="testErrorResponseIsJsonByDefault"/>
+   <testMethod id="tests\Feature\IsDarkApiTest::testErrorResponseIsXmlWhenRequested" name="testErrorResponseIsXmlWhenRequested"/>
+  </testClass>
+ </tests>
+ <groups>
+  <group name="default">
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatJson"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatXml"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatYaml"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatDefaultToJson"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatNestedArray"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testFormatBooleanValues"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testGetContentType"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testDetectFormatJson"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testDetectFormatXml"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testDetectFormatYaml"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testDetectFormatDefault"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testXmlEscapesSpecialCharacters"/>
+   <test id="tests\Unit\Service\ResponseFormatterServiceTest::testYamlEscapesSpecialCharacters"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testCalculateReturnsRequiredFields"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testCalculateReturnsBooleanIsDark"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testCalculateReturnsValidIso8601Dates"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testCalculateReturnsValidTimestamps"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testCalculateForNorthPole"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testCalculateForSouthPole"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testRoundCoordinates"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testValidateValidCoordinates"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testValidateInvalidLatitudeTooHigh"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testValidateInvalidLatitudeTooLow"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testValidateInvalidLongitudeTooHigh"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testValidateInvalidLongitudeTooLow"/>
+   <test id="tests\Unit\Service\SunCalcServiceTest::testValidateBoundaryValues"/>
+   <test id="tests\Feature\IsDarkApiTest::testEndpointReturns200WithValidParams"/>
+   <test id="tests\Feature\IsDarkApiTest::testEndpointReturnsJsonByDefault"/>
+   <test id="tests\Feature\IsDarkApiTest::testEndpointReturnsXmlWhenRequested"/>
+   <test id="tests\Feature\IsDarkApiTest::testEndpointReturnsYamlWhenRequested"/>
+   <test id="tests\Feature\IsDarkApiTest::testEndpointReturns400WhenMissingParams"/>
+   <test id="tests\Feature\IsDarkApiTest::testEndpointReturns400WhenMissingLat"/>
+   <test id="tests\Feature\IsDarkApiTest::testEndpointReturns400WhenMissingLng"/>
+   <test id="tests\Feature\IsDarkApiTest::testEndpointReturns422ForInvalidLatitude"/>
+   <test id="tests\Feature\IsDarkApiTest::testEndpointReturns422ForInvalidLongitude"/>
+   <test id="tests\Feature\IsDarkApiTest::testResponseContainsRequiredFields"/>
+   <test id="tests\Feature\IsDarkApiTest::testResponseDoesNotContainExpiresAt"/>
+   <test id="tests\Feature\IsDarkApiTest::testResponseHasCacheHeaders"/>
+   <test id="tests\Feature\IsDarkApiTest::testCoordinatesAreRoundedToTwoDecimals"/>
+   <test id="tests\Feature\IsDarkApiTest::testErrorResponseIsJsonByDefault"/>
+   <test id="tests\Feature\IsDarkApiTest::testErrorResponseIsXmlWhenRequested"/>
+  </group>
+ </groups>
+</testSuite>
