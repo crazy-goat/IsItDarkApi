@@ -31,6 +31,67 @@
             border-radius: 0;
         }
 
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .sidebar.visible {
+            display: block;
+        }
+
+        .sidebar h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .info-group {
+            margin-bottom: 15px;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .info-value.highlight {
+            color: #4a9eff;
+        }
+
+        .state-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .state-badge.day { background: #f59e0b; }
+        .state-badge.civil_twilight { background: #f97316; }
+        .state-badge.nautical_twilight { background: #8b5cf6; }
+        .state-badge.astronomical_twilight { background: #6366f1; }
+        .state-badge.night { background: #4a9eff; }
+
         .top-bar {
             display: flex;
             align-items: center;
@@ -157,40 +218,6 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .result {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            text-align: center;
-            padding: 20px 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-            margin: 0;
-            min-width: 300px;
-        }
-
-        .result.yes {
-            background: linear-gradient(135deg, #2d1b69 0%, #1a0f3c 100%);
-        }
-
-        .result.no {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        }
-
-        .result-text {
-            font-size: 4rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .result-info {
-            font-size: 1.2rem;
-            color: rgba(255,255,255,0.8);
-        }
-
         .loading {
             opacity: 0.5;
             pointer-events: none;
@@ -250,7 +277,7 @@
     <div class="container">
         <div class="top-bar">
             <h1>Is It Dark?</h1>
-            
+
             <div class="input-row">
                 <div class="input-group autocomplete" style="flex: 2;">
                     <input type="text" id="cityInput" placeholder="Search city..." autocomplete="off">
@@ -270,18 +297,20 @@
             </div>
         </div>
 
-        <div class="map-container" id="mapContainer">
-            <div id="map-viewport"></div>
-            <div id="marker" class="marker" style="display:none;"></div>
-            <div class="map-controls">
-                <button onclick="zoomMap(1.2)">+</button>
-                <button onclick="zoomMap(0.8)">−</button>
+        <div class="main-content">
+            <div class="map-container" id="mapContainer">
+                <div id="map-viewport"></div>
+                <div id="marker" class="marker" style="display:none;"></div>
+                <div class="map-controls">
+                    <button onclick="zoomMap(1.2)">+</button>
+                    <button onclick="zoomMap(0.8)">−</button>
+                </div>
             </div>
-        </div>
 
-        <div id="result" class="result" style="display:none;">
-            <div class="result-text" id="resultText"></div>
-            <div class="result-info" id="resultInfo"></div>
+            <div id="sidebar" class="sidebar">
+                <h2>Sun Information</h2>
+                <div id="sidebarContent"></div>
+            </div>
         </div>
 
         <div id="error" class="error"></div>
@@ -540,10 +569,9 @@
             }
 
             hideError();
-            document.getElementById('result').classList.add('loading');
 
             try {
-                const response = await fetch(`/api/v1/is-dark?lat=${lat}&lng=${lng}`, {
+                const response = await fetch(`/api/v1/is-dark?lat=${lat}&lng=${lng}&detailed=true`, {
                     headers: { 'Accept': 'application/json' }
                 });
 
@@ -557,31 +585,106 @@
                 showResult(data);
             } catch (e) {
                 showError('Network error');
-            } finally {
-                document.getElementById('result').classList.remove('loading');
             }
         }
 
         function showResult(data) {
-            const resultDiv = document.getElementById('result');
-            const resultText = document.getElementById('resultText');
-            const resultInfo = document.getElementById('resultInfo');
+            showSidebar(data);
+        }
 
-            resultDiv.style.display = 'block';
-            resultDiv.className = 'result ' + (data.is_dark ? 'yes' : 'no');
-            resultText.textContent = data.is_dark ? 'YES' : 'NO';
+        function showSidebar(data) {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarContent = document.getElementById('sidebarContent');
 
-            const sunrise = new Date(data.sunrise).toLocaleTimeString();
-            const sunset = new Date(data.sunset).toLocaleTimeString();
-            resultInfo.innerHTML = `Sunrise: ${sunrise}<br>Sunset: ${sunset}`;
+            sidebar.classList.add('visible');
+
+            const formatTime = (isoString) => {
+                if (!isoString) return 'N/A';
+                return new Date(isoString).toLocaleTimeString();
+            };
+
+            const formatDuration = (seconds) => {
+                if (!seconds && seconds !== 0) return 'N/A';
+                const hrs = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                return `${hrs}h ${mins}m`;
+            };
+
+            const getStateLabel = (state) => {
+                return state.replace(/_/g, ' ');
+            };
+
+            let html = `
+                <div class="info-group">
+                    <div class="info-label">Current State</div>
+                    <div class="info-value">
+                        <span class="state-badge ${data.state || 'night'}">${getStateLabel(data.state || 'night')}</span>
+                    </div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Sunrise</div>
+                    <div class="info-value highlight">${formatTime(data.sunrise)}</div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Sunset</div>
+                    <div class="info-value highlight">${formatTime(data.sunset)}</div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Solar Noon</div>
+                    <div class="info-value">${formatTime(data.solar_noon)}</div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Day Length</div>
+                    <div class="info-value">${formatDuration(data.day_length)}</div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Night Length</div>
+                    <div class="info-value">${formatDuration(data.night_length)}</div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Civil Twilight</div>
+                    <div class="info-value">${formatTime(data.civil_dawn)} - ${formatTime(data.civil_dusk)}</div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Nautical Twilight</div>
+                    <div class="info-value">${formatTime(data.nautical_dawn)} - ${formatTime(data.nautical_dusk)}</div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Astronomical Twilight</div>
+                    <div class="info-value">${formatTime(data.astronomical_dawn)} - ${formatTime(data.astronomical_dusk)}</div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Next Change</div>
+                    <div class="info-value highlight">${data.next_change || 'N/A'}</div>
+                </div>
+
+                <div class="info-group">
+                    <div class="info-label">Polar Day/Night</div>
+                    <div class="info-value">
+                        ${data.is_polar_day ? '<span style="color:#f59e0b">☀️ Polar Day</span>' : ''}
+                        ${data.is_polar_night ? '<span style="color:#4a9eff">🌙 Polar Night</span>' : ''}
+                        ${!data.is_polar_day && !data.is_polar_night ? 'Normal cycle' : ''}
+                    </div>
+                </div>
+            `;
+
+            sidebarContent.innerHTML = html;
         }
 
         function clearAll() {
             document.getElementById('cityInput').value = '';
             document.getElementById('latInput').value = '';
             document.getElementById('lngInput').value = '';
-            document.getElementById('result').style.display = 'none';
-            document.getElementById('marker').style.display = 'none';
+            document.getElementById('sidebar').classList.remove('visible');
             hideError();
         }
 
