@@ -16,10 +16,9 @@ return [
     'default' => [
         'handlers' => [
             [
-                'class' => Monolog\Handler\RotatingFileHandler::class,
+                'class' => Monolog\Handler\StreamHandler::class,
                 'constructor' => [
-                    runtime_path() . '/logs/webman.log',
-                    7, //$maxFiles
+                    'php://stdout',
                     Monolog\Logger::DEBUG,
                 ],
                 'formatter' => [

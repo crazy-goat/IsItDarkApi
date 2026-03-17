@@ -27,7 +27,11 @@ RUN php tools/map-generator.php || true
 
 # Create non-root user
 RUN adduser -D -u 1000 appuser
-USER 1000:1000
+
+# Create runtime directory with proper permissions
+RUN mkdir -p runtime && chmod 777 runtime
+
+USER appuser
 
 # Expose port
 EXPOSE 8787
