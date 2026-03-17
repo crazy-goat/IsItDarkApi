@@ -11,24 +11,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-php:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build static PHP
-        uses: crazywhalecc/static-php-cli@main
-        with:
-          config: craft.yml
-
-      - name: Upload PHP binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: php-binary
-          path: build/php
-
   build-docker:
-    needs: build-php
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -37,15 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download PHP binary
-        uses: actions/download-artifact@v4
-        with:
-          name: php-binary
-          path: build
-
-      - name: Make PHP executable
-        run: chmod +x build/php
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -78,3 +52,22 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: ctype, filter, json, mbstring, openssl, pcre, sockets
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run tests
+        run: composer test
