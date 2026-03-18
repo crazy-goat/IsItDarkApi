@@ -38,21 +38,22 @@ WORKDIR /app
 # Copy static PHP binary from builder
 COPY --from=builder /app/build/php /usr/local/bin/php
 
-# Copy application code
-COPY --from=vendor /app/vendor ./vendor
-COPY . .
+# Copy application code with proper ownership
+COPY --chown=1000:1000 --from=vendor /app/vendor ./vendor
+COPY --chown=1000:1000 . .
 
 # Copy CA certificates for HTTPS (needed by curl/openssl)
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Create runtime directory
-RUN mkdir -p runtime && chmod 777 runtime
+# Create runtime directory with proper permissions
+USER root
+RUN mkdir -p runtime && chown 1000:1000 runtime
 
 # Expose port
 EXPOSE 8787
 
 # Health check (using PHP script since no curl/wget in scratch)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD ["/usr/local/bin/php", "-r", "exit(file_get_contents('http://localhost:8787/') ? 0 : 1);"]
 
 # Run as non-root user
