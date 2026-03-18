@@ -1,64 +1,47 @@
-# Multi-stage build for minimal static PHP image
-# Stage 1: Build static PHP binary using static-php-cli
-FROM crazyleo233/static-php-cli:latest AS builder
-
-WORKDIR /app
-
-# Copy SPC configuration
-COPY craft.yml ./craft.yml
-
-# Build static PHP binary with all extensions
-RUN mkdir -p build && \
-    php bin/spc build \
-    --config=craft.yml \
-    --build-dir=build \
-    --no-interaction
-
-# Stage 2: Install Composer dependencies
+# Minimal PHP image using static-php-cli (SPC) - FROM scratch
 FROM composer:latest AS vendor
 
 WORKDIR /app
-
-# Copy composer files
 COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --ignore-platform-reqs
 
-# Install dependencies (no dev, optimized autoloader)
-RUN composer install \
-    --no-dev \
-    --optimize-autoloader \
-    --no-interaction \
-    --no-progress \
-    --ignore-platform-reqs
+FROM alpine:latest AS builder
 
-# Stage 3: Final minimal image (FROM scratch)
+WORKDIR /app
+COPY buildroot/bin/micro.sfx /micro.sfx
+COPY --from=vendor /app/vendor ./vendor
+COPY . .
+
+# Concatenate micro.sfx with start.php to create a self-executing binary
+RUN cat /micro.sfx start.php > /isitdark && chmod +x /isitdark
+
+# Create runtime directory with proper permissions for nobody user (65534)
+RUN mkdir -p /app/runtime/logs && chown -R 65534:65534 /app/runtime
+
 FROM scratch
 
 WORKDIR /app
 
-# Copy static PHP binary from builder
-COPY --from=builder /app/build/php /usr/local/bin/php
+# Copy the concatenated binary
+COPY --from=builder /isitdark /isitdark
 
-# Copy application code with proper ownership
-COPY --chown=1000:1000 --from=vendor /app/vendor ./vendor
-COPY --chown=1000:1000 . .
+# Copy vendor directory
+COPY --from=vendor /app/vendor ./vendor
 
-# Copy CA certificates for HTTPS (needed by curl/openssl)
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# Copy necessary application files
+COPY app ./app
+COPY config ./config
+COPY public ./public
+COPY resources ./resources
+COPY support ./support
 
-# Create runtime directory with proper permissions
-USER root
-RUN mkdir -p runtime && chown 1000:1000 runtime
+# Copy runtime directory with proper permissions
+COPY --from=builder --chown=65534:65534 /app/runtime ./runtime
 
-# Expose port
+# Use nobody user for security
+USER 65534
+
 EXPOSE 8787
 
-# Health check (using PHP script since no curl/wget in scratch)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD ["/usr/local/bin/php", "-r", "exit(file_get_contents('http://localhost:8787/') ? 0 : 1);"]
-
-# Run as non-root user
-USER 1000:1000
-
-# Start the application
-ENTRYPOINT ["/usr/local/bin/php"]
-CMD ["start.php", "start"]
+ENTRYPOINT ["/isitdark"]
+CMD ["start"]

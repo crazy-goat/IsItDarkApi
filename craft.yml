@@ -1,37 +1,8 @@
-# Configuration for static-php-cli
-# Build minimal PHP binary for IsItDarkApi
-
-php:
-  version: "8.4"
-  extensions:
-    required:
-      - ctype
-      - curl
-      - filter
-      - json
-      - mbstring
-      - openssl
-      - pcntl
-      - pcre
-      - posix
-      - session
-      - sockets
-      - tokenizer
-      - xml
-      - yaml
-    optional:
-      - fileinfo
-      - iconv
-      - intl
-      - readline
-      - zlib
-
-# Build settings
-build:
-  os: linux
-  arch: x86_64
-
-# Output
-output:
-  name: "php"
-  path: "./build/php"
+php-version: 8.4
+extensions: "pcntl,json,xml,yaml,curl,openssl,ctype,filter,mbstring,posix,session,sockets,tokenizer,phar"
+shared-extensions: []
+sapi: micro
+build-options:
+  with-upx-pack: false
+download-options:
+  prefer-pre-built: true

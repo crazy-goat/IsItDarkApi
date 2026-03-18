@@ -6,6 +6,7 @@
 docs
 *.md
 LICENSE
+TODO.md
 
 # Tests
 tests
@@ -21,6 +22,19 @@ docker-compose.yml
 # Build artifacts
 build
 vendor
+
+# SPC build directories (except bin/micro.sfx which we need)
+buildroot/debug/
+buildroot/include/
+buildroot/lib/
+buildroot/license/
+buildroot/share/
+buildroot/src/
+source/
+spc
+pkgroot/
+log/
+downloads/
 
 # IDE
 .vscode
