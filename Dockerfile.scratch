@@ -1,0 +1,63 @@
+# Multi-stage build for minimal static PHP image
+# Stage 1: Build static PHP binary using static-php-cli
+FROM crazyleo233/static-php-cli:latest AS builder
+
+WORKDIR /app
+
+# Copy SPC configuration
+COPY craft.yml ./craft.yml
+
+# Build static PHP binary with all extensions
+RUN mkdir -p build && \
+    php bin/spc build \
+    --config=craft.yml \
+    --build-dir=build \
+    --no-interaction
+
+# Stage 2: Install Composer dependencies
+FROM composer:latest AS vendor
+
+WORKDIR /app
+
+# Copy composer files
+COPY composer.json composer.lock ./
+
+# Install dependencies (no dev, optimized autoloader)
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --no-progress \
+    --ignore-platform-reqs
+
+# Stage 3: Final minimal image (FROM scratch)
+FROM scratch
+
+WORKDIR /app
+
+# Copy static PHP binary from builder
+COPY --from=builder /app/build/php /usr/local/bin/php
+
+# Copy application code
+COPY --from=vendor /app/vendor ./vendor
+COPY . .
+
+# Copy CA certificates for HTTPS (needed by curl/openssl)
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+# Create runtime directory
+RUN mkdir -p runtime && chmod 777 runtime
+
+# Expose port
+EXPOSE 8787
+
+# Health check (using PHP script since no curl/wget in scratch)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD ["/usr/local/bin/php", "-r", "exit(file_get_contents('http://localhost:8787/') ? 0 : 1);"]
+
+# Run as non-root user
+USER 1000:1000
+
+# Start the application
+ENTRYPOINT ["/usr/local/bin/php"]
+CMD ["start.php", "start"]
