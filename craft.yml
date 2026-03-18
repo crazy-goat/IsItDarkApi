@@ -2,25 +2,27 @@
 # Build minimal PHP binary for IsItDarkApi
 
 php:
-  version: "8.2"
+  version: "8.4"
   extensions:
     required:
       - ctype
+      - curl
       - filter
       - json
       - mbstring
       - openssl
+      - pcntl
       - pcre
+      - posix
       - session
       - sockets
       - tokenizer
       - xml
+      - yaml
     optional:
-      - curl
       - fileinfo
       - iconv
       - intl
-      - posix
       - readline
       - zlib
 
@@ -28,7 +30,7 @@ php:
 build:
   os: linux
   arch: x86_64
-  
+
 # Output
 output:
   name: "php"
