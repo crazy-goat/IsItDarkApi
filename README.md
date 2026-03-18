@@ -129,6 +129,37 @@ docker build -t isitdarkapi .
 docker run -p 8787:8787 isitdarkapi
 ```
 
+### Docker (Minimal - FROM scratch)
+
+For a minimal image (~30-50MB vs ~150MB):
+
+```bash
+# Pull pre-built image
+docker pull ghcr.io/crazy-goat/isitdarkapi:latest-scratch
+
+# Run container
+docker run -p 8787:8787 ghcr.io/crazy-goat/isitdarkapi:latest-scratch
+```
+
+**Benefits of scratch image:**
+- ~70% smaller (30-50MB vs 150MB+)
+- No shell, no package manager - minimal attack surface
+- Faster deployments
+- Only PHP binary + application code
+
+**Building scratch image locally:**
+
+```bash
+# Build
+docker build -f Dockerfile.scratch -t isitdarkapi:scratch .
+
+# Run
+docker run -p 8787:8787 isitdarkapi:scratch
+
+# Check size
+docker images isitdarkapi:scratch --format "{{.Size}}"
+```
+
 ### Dokploy Deployment
 
 1. Install Dokploy on your VPS:
@@ -180,7 +211,7 @@ composer test-coverage
 - **Astronomy**: crazy-goat/is-it-dark library
 - **Frontend**: Vanilla HTML/JS/CSS
 - **Map**: Custom SVG
-- **Container**: Docker with static PHP binary
+- **Container**: Docker with static PHP binary (scratch image ~30-50MB)
 
 ## License
 

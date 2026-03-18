@@ -1,0 +1,47 @@
+# Minimal PHP image using static-php-cli (SPC) - FROM scratch
+FROM composer:latest AS vendor
+
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --ignore-platform-reqs
+
+FROM alpine:latest AS builder
+
+WORKDIR /app
+COPY buildroot/bin/micro.sfx /micro.sfx
+COPY --from=vendor /app/vendor ./vendor
+COPY . .
+
+# Concatenate micro.sfx with start.php to create a self-executing binary
+RUN cat /micro.sfx start.php > /isitdark && chmod +x /isitdark
+
+# Create runtime directory with proper permissions for nobody user (65534)
+RUN mkdir -p /app/runtime/logs && chown -R 65534:65534 /app/runtime
+
+FROM scratch
+
+WORKDIR /app
+
+# Copy the concatenated binary
+COPY --from=builder /isitdark /isitdark
+
+# Copy vendor directory
+COPY --from=vendor /app/vendor ./vendor
+
+# Copy necessary application files
+COPY app ./app
+COPY config ./config
+COPY public ./public
+COPY resources ./resources
+COPY support ./support
+
+# Copy runtime directory with proper permissions
+COPY --from=builder --chown=65534:65534 /app/runtime ./runtime
+
+# Use nobody user for security
+USER 65534
+
+EXPOSE 8787
+
+ENTRYPOINT ["/isitdark"]
+CMD ["start"]
