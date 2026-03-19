@@ -19,5 +19,7 @@ return [
     'status_file' => runtime_path() . '/webman.status',
     'stdout_file' => runtime_path() . '/logs/stdout.log',
     'log_file' => runtime_path() . '/logs/workerman.log',
-    'max_package_size' => 10 * 1024 * 1024
+    'max_package_size' => 10 * 1024 * 1024,
+    'user' => 'nobody',
+    'count' => getenv('WEBMAN_WORKER_COUNT') ? (int)getenv('WEBMAN_WORKER_COUNT') : 4,
 ];

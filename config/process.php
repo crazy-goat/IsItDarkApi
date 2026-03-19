@@ -22,9 +22,9 @@ return [
     'webman' => [
         'handler' => Http::class,
         'listen' => 'http://0.0.0.0:8787',
-        'count' => cpu_count() * 4,
-        'user' => '',
-        'group' => '',
+        'count' => getenv('WEBMAN_WORKER_COUNT') ? (int)getenv('WEBMAN_WORKER_COUNT') : 4,
+        'user' => 'nobody',
+        'group' => 'nobody',
         'reusePort' => false,
         'eventLoop' => '',
         'context' => [],
