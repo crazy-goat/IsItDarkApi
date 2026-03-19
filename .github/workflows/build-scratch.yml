@@ -31,6 +31,8 @@ jobs:
         with:
           path: buildroot/
           key: spc-php-${{ hashFiles('craft.yml') }}
+          restore-keys: |
+            spc-php-
 
       - name: Build static PHP binary
         if: steps.cache-php.outputs.cache-hit != 'true'
