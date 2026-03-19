@@ -114,3 +114,10 @@ jobs:
           # Cleanup
           docker stop test-app
           docker rm test-app
+
+      - name: Deploy to Dokploy
+        run: |
+          IMAGE_TAG="${{ github.ref_name }}"
+          curl -X POST https://dokploy.crazy-goat.com/api/deploy/GTqbHMtCRqf-SDlbxQrSz \
+            -H "Content-Type: application/json" \
+            -d '{"image": "ghcr.io/crazy-goat/isitdarkapi:'"$IMAGE_TAG"'-scratch", "tag": "'"$IMAGE_TAG"'-scratch"}'
