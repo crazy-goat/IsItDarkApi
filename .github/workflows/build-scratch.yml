@@ -25,11 +25,24 @@ jobs:
           curl -fsSL -o spc https://dl.static-php.dev/static-php-cli/spc-bin/nightly/spc-linux-x86_64
           chmod +x spc
 
+      - name: Cache static PHP build
+        id: cache-php
+        uses: actions/cache@v4
+        with:
+          path: buildroot/
+          key: spc-php-${{ hashFiles('craft.yml') }}-${{ hashFiles('spc') }}
+
       - name: Build static PHP binary
+        if: steps.cache-php.outputs.cache-hit != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./spc craft --with-clean
+
+      - name: Use cached PHP binary
+        if: steps.cache-php.outputs.cache-hit == 'true'
+        run: |
+          echo "✅ Using cached PHP binary"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -72,7 +85,9 @@ jobs:
       - name: Test image
         run: |
           IMAGE_NAME_LOWER=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_TAG="${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}:${{ github.ref_name }}-scratch"
+          # Remove 'v' prefix from version tag (v1.0.3 -> 1.0.3)
+          VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          IMAGE_TAG="${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}:${VERSION}-scratch"
           
           # Run container in background
           docker run -d --name test-app -p 8787:8787 $IMAGE_TAG
