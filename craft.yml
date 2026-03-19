@@ -1,5 +1,5 @@
 php-version: 8.4
-extensions: "pcntl,json,xml,yaml,curl,openssl,ctype,filter,mbstring,posix,session,sockets,tokenizer,phar"
+extensions: "pcntl,json,xml,yaml,curl,openssl,ctype,filter,mbstring,posix,session,sockets,tokenizer,phar,opentelemetry"
 shared-extensions: []
 sapi: micro
 build-options:
