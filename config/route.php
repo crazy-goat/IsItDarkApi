@@ -30,6 +30,11 @@ Route::get('/api/cities', function () {
     return json($cities);
 });
 
+// Health check
+Route::get('/health', function () {
+    return json(['status' => 'ok']);
+});
+
 // Map file
 Route::get('/map/world.svg', function () {
     $mapFile = base_path('public/map/world.svg');

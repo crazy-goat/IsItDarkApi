@@ -39,7 +39,7 @@ EXPOSE 8787
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD php -r "exit(file_get_contents('http://localhost:8787/') ? 0 : 1);" || exit 1
+    CMD php -r "exit(str_contains(file_get_contents('http://localhost:8787/health'), 'ok') ? 0 : 1);"
 
 # Start the application
 CMD ["php", "start.php", "start"]
