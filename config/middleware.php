@@ -15,6 +15,7 @@
 return [
     // Global middleware
     '' => [
+        app\middleware\TelemetryMiddleware::class,
         app\middleware\CorsMiddleware::class,
     ],
     

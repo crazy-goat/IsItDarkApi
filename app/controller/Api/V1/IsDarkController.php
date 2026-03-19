@@ -2,6 +2,7 @@
 
 namespace app\controller\Api\V1;
 
+use app\service\OpenTelemetryService;
 use app\service\ResponseFormatterService;
 use app\service\SunCalcService;
 use support\Request;
@@ -41,6 +42,14 @@ class IsDarkController
 
         // Obliczenia
         $result = $sunCalc->calculate($lat, $lng);
+
+        // Metryki biznesowe
+        $otel = OpenTelemetryService::getInstance();
+        $otel->isDarkQueryCounter()->add(1, [
+            'result' => $result['is_dark'] ? 'dark' : 'light',
+        ]);
+        $otel->latDistribution()->record($lat);
+        $otel->lngDistribution()->record($lng);
 
         // Przygotowanie odpowiedzi
         $responseData = [
