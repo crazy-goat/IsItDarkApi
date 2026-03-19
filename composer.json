@@ -33,7 +33,11 @@
     "php": ">=8.1",
     "workerman/webman-framework": "^2.1",
     "monolog/monolog": "^2.0",
-    "crazy-goat/is-it-dark": "dev-main"
+    "crazy-goat/is-it-dark": "dev-main",
+    "open-telemetry/sdk": "^1.1",
+    "open-telemetry/exporter-otlp": "^1.1",
+    "nyholm/psr7": "^1.8",
+    "guzzlehttp/guzzle": "^7.10"
   },
   "suggest": {
     "ext-event": "For better performance. "

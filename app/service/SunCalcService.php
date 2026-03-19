@@ -6,6 +6,7 @@ use CrazyGoat\IsItDark\IsItDark;
 use CrazyGoat\IsItDark\Location;
 use DateTimeImmutable;
 use DateTimeZone;
+use OpenTelemetry\API\Trace\SpanKind;
 
 class SunCalcService
 {
@@ -18,10 +19,28 @@ class SunCalcService
      */
     public function calculate(float $lat, float $lng): array
     {
+        $otel = OpenTelemetryService::getInstance();
+        $span = $otel->tracer()
+            ->spanBuilder('SunCalcService::calculate')
+            ->setSpanKind(SpanKind::KIND_INTERNAL)
+            ->setAttribute('geo.lat', $lat)
+            ->setAttribute('geo.lng', $lng)
+            ->startSpan();
+        $scope = $span->activate();
+
+        try {
+            return $this->doCalculate($lat, $lng);
+        } finally {
+            $span->end();
+            $scope->detach();
+        }
+    }
+
+    private function doCalculate(float $lat, float $lng): array
+    {
         $location = new Location($lat, $lng);
         $isItDark = new IsItDark($location);
         
-        // Pobieramy wszystkie dane
         $data = $isItDark->toArray();
         
         // Określamy czas ważności odpowiedzi (następna zmiana - sunrise lub sunset)
