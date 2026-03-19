@@ -12,11 +12,12 @@ use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Export\Http\PsrTransportFactory;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
+use OpenTelemetry\SDK\Common\Time\ClockInterface;
 use OpenTelemetry\SDK\Metrics\MeterProvider;
 use OpenTelemetry\SDK\Metrics\MetricReader\ExportingReader;
 use OpenTelemetry\SDK\Metrics\View\CriteriaViewRegistry;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
+use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SemConv\ResourceAttributes;
 
@@ -26,6 +27,8 @@ class OpenTelemetryService
 
     private TracerInterface $tracer;
     private MeterInterface $meter;
+    private ?TracerProvider $tracerProvider = null;
+    private ?MeterProvider $meterProvider = null;
     private CounterInterface $requestCounter;
     private HistogramInterface $requestDuration;
     private CounterInterface $isDarkQueryCounter;
@@ -102,6 +105,12 @@ class OpenTelemetryService
         return $this->enabled;
     }
 
+    public function forceFlush(): void
+    {
+        $this->tracerProvider?->forceFlush();
+        $this->meterProvider?->forceFlush();
+    }
+
     private function initNoop(string $serviceName): void
     {
         $resource = ResourceInfo::create(Attributes::create([
@@ -124,16 +133,31 @@ class OpenTelemetryService
         $transport = PsrTransportFactory::discover()->create(
             rtrim($endpoint, '/') . '/v1/traces',
             'application/x-protobuf',
+            [],
+            null,
+            1.0,
+            0,
+            1,
         );
 
         $exporter = new \OpenTelemetry\Contrib\Otlp\SpanExporter($transport);
 
-        $tracerProvider = TracerProvider::builder()
-            ->addSpanProcessor(new SimpleSpanProcessor($exporter))
+        $spanProcessor = new BatchSpanProcessor(
+            $exporter,
+            ClockFactory::getDefault(),
+            maxQueueSize: 2048,
+            scheduledDelayMillis: 5000,
+            exportTimeoutMillis: 5000,
+            maxExportBatchSize: 512,
+            autoFlush: false,
+        );
+
+        $this->tracerProvider = TracerProvider::builder()
+            ->addSpanProcessor($spanProcessor)
             ->setResource($resource)
             ->build();
 
-        $this->tracer = $tracerProvider->getTracer('isitdark');
+        $this->tracer = $this->tracerProvider->getTracer('isitdark');
     }
 
     private function initMeter(string $endpoint, ResourceInfo $resource): void
@@ -141,17 +165,22 @@ class OpenTelemetryService
         $transport = PsrTransportFactory::discover()->create(
             rtrim($endpoint, '/') . '/v1/metrics',
             'application/x-protobuf',
+            [],
+            null,
+            1.0,
+            0,
+            1,
         );
 
         $exporter = new \OpenTelemetry\Contrib\Otlp\MetricExporter($transport);
         $reader = new ExportingReader($exporter);
 
-        $meterProvider = MeterProvider::builder()
+        $this->meterProvider = MeterProvider::builder()
             ->setResource($resource)
             ->addReader($reader)
             ->build();
 
-        $this->meter = $meterProvider->getMeter('isitdark');
+        $this->meter = $this->meterProvider->getMeter('isitdark');
     }
 
     private function registerMetrics(): void
