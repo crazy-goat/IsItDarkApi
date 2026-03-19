@@ -114,7 +114,9 @@ jobs:
       - name: Deploy to Dokploy
         run: |
           IMAGE_TAG="${{ github.ref_name }}"
-          TITLE="${{ github.event.head_commit.message }}"
+          # Get first line of commit message and combine with tag
+          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
+          TITLE="${IMAGE_TAG} - ${COMMIT_MSG}"
           curl -X POST https://dokploy.crazy-goat.com/api/deploy/GTqbHMtCRqf-SDlbxQrSz \
             -H "Content-Type: application/json" \
             -d '{"image": "ghcr.io/crazy-goat/isitdarkapi:'"$IMAGE_TAG"'-scratch", "tag": "'"$IMAGE_TAG"'-scratch", "title": "'"$TITLE"'"}'
