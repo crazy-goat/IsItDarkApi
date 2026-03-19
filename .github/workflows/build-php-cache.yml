@@ -1,0 +1,45 @@
+name: Build PHP Cache
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'craft.yml'
+      - '.github/workflows/build-php-cache.yml'
+  workflow_dispatch:
+
+jobs:
+  build-php-cache:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download SPC binary
+        run: |
+          curl -fsSL -o spc https://dl.static-php.dev/static-php-cli/spc-bin/nightly/spc-linux-x86_64
+          chmod +x spc
+
+      - name: Cache static PHP build
+        id: cache-php
+        uses: actions/cache@v4
+        with:
+          path: buildroot/
+          key: spc-php-${{ hashFiles('craft.yml') }}
+          restore-keys: |
+            spc-php-
+
+      - name: Build static PHP binary
+        if: steps.cache-php.outputs.cache-hit != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./spc craft --with-clean
+
+      - name: Use cached PHP binary
+        if: steps.cache-php.outputs.cache-hit == 'true'
+        run: |
+          echo "✅ Using cached PHP binary"
