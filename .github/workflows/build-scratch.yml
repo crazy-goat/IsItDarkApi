@@ -97,12 +97,6 @@ jobs:
           # Wait for startup
           sleep 5
           
-          # Debug: check container status and logs
-          echo "Container status:"
-          docker ps -a
-          echo "Container logs:"
-          docker logs test-app 2>&1 || true
-          
           # Test health endpoint
           curl -f http://localhost:8787/ || exit 1
           
@@ -118,6 +112,7 @@ jobs:
       - name: Deploy to Dokploy
         run: |
           IMAGE_TAG="${{ github.ref_name }}"
+          TITLE="${{ github.event.head_commit.message }}"
           curl -X POST https://dokploy.crazy-goat.com/api/deploy/GTqbHMtCRqf-SDlbxQrSz \
             -H "Content-Type: application/json" \
-            -d '{"image": "ghcr.io/crazy-goat/isitdarkapi:'"$IMAGE_TAG"'-scratch", "tag": "'"$IMAGE_TAG"'-scratch"}'
+            -d '{"image": "ghcr.io/crazy-goat/isitdarkapi:'"$IMAGE_TAG"'-scratch", "tag": "'"$IMAGE_TAG"'-scratch", "title": "'"$TITLE"'"}'
