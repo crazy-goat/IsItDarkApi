@@ -71,7 +71,8 @@ jobs:
 
       - name: Test image
         run: |
-          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-scratch"
+          IMAGE_NAME_LOWER=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG="${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}:${{ github.ref_name }}-scratch"
           
           # Run container in background
           docker run -d --name test-app -p 8787:8787 $IMAGE_TAG
