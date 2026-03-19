@@ -99,12 +99,6 @@ jobs:
           # Wait for startup
           sleep 5
           
-          # Debug: check container status and logs
-          echo "Container status:"
-          docker ps -a
-          echo "Container logs:"
-          docker logs test-app 2>&1 || true
-          
           # Test health endpoint
           curl -f http://localhost:8787/ || exit 1
           
