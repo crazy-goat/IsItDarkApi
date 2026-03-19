@@ -41,6 +41,9 @@ COPY --from=builder --chown=65534:65534 /app/runtime ./runtime
 # Use nobody user for security
 USER 65534
 
+# Set environment variables for Workerman
+ENV WEBMAN_WORKER_COUNT=4
+
 EXPOSE 8787
 
 ENTRYPOINT ["/isitdark"]
