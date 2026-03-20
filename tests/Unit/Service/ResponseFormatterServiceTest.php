@@ -139,6 +139,24 @@ class ResponseFormatterServiceTest extends TestCase
         $this->assertStringContainsString("'Test: value # comment'", $yaml);
     }
 
+    public function testYamlHandlesNullValues(): void
+    {
+        $data = ['key' => null, 'other' => 'value'];
+        $yaml = $this->formatter->format($data, 'yaml');
+
+        $this->assertStringContainsString('key: null', $yaml);
+        $this->assertStringContainsString('other: value', $yaml);
+    }
+
+    public function testXmlHandlesNullValues(): void
+    {
+        $data = ['key' => null, 'other' => 'value'];
+        $xml = $this->formatter->format($data, 'xml');
+
+        $this->assertStringContainsString('<key/>', $xml);
+        $this->assertStringContainsString('<other>value</other>', $xml);
+    }
+
     public function testXmlOutputContainsRealNewlines(): void
     {
         $data = ['key' => 'value'];
