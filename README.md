@@ -15,6 +15,24 @@ Simple API to check if it's dark at any location in the world.
 
 ## API Usage
 
+### Quick Start
+
+Check if it's dark in Warsaw (52.23°N, 21.01°E):
+
+```bash
+# Simple request (JSON by default)
+curl "http://localhost:8787/api/v1/is-dark?lat=52.23&lng=21.01"
+
+# Detailed astronomical data
+curl "http://localhost:8787/api/v1/is-dark?lat=52.23&lng=21.01&detailed=true"
+
+# XML format
+curl -H "Accept: application/xml" "http://localhost:8787/api/v1/is-dark?lat=52.23&lng=21.01"
+
+# YAML format
+curl -H "Accept: application/x-yaml" "http://localhost:8787/api/v1/is-dark?lat=52.23&lng=21.01"
+```
+
 ### Endpoint
 
 ```
