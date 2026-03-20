@@ -8,9 +8,14 @@ use CrazyGoat\IsItDark\IsItDark;
 use CrazyGoat\IsItDark\Location;
 use DateTimeImmutable;
 use OpenTelemetry\API\Trace\SpanKind;
+use support\Container;
 
 class SunCalcService
 {
+    public function __construct(private readonly ?OpenTelemetryService $otel = null)
+    {
+    }
+
     /**
      * Oblicza czy jest ciemno oraz szczegółowe dane astronomiczne
      *
@@ -20,7 +25,7 @@ class SunCalcService
      */
     public function calculate(float $lat, float $lng): array
     {
-        $otel = OpenTelemetryService::getInstance();
+        $otel = $this->otel ?? Container::get(OpenTelemetryService::class);
         $span = $otel->tracer()
             ->spanBuilder('SunCalcService::calculate')
             ->setSpanKind(SpanKind::KIND_INTERNAL)

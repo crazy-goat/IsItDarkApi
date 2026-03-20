@@ -22,8 +22,6 @@ use OpenTelemetry\SemConv\ResourceAttributes;
 
 class OpenTelemetryService
 {
-    private static ?self $instance = null;
-
     private TracerInterface $tracer;
     private MeterInterface $meter;
     private ?TracerProviderInterface $tracerProvider = null;
@@ -35,7 +33,7 @@ class OpenTelemetryService
     private HistogramInterface $lngDistribution;
     private readonly bool $enabled;
 
-    private function __construct()
+    public function __construct()
     {
         $endpoint = getenv('OTEL_EXPORTER_OTLP_ENDPOINT') ?: '';
         $serviceName = getenv('OTEL_SERVICE_NAME') ?: 'isitdark-api';
@@ -54,14 +52,6 @@ class OpenTelemetryService
         $this->initTracer($endpoint, $resource);
         $this->initMeter($endpoint, $resource);
         $this->registerMetrics();
-    }
-
-    public static function getInstance(): self
-    {
-        if (!self::$instance instanceof \app\service\OpenTelemetryService) {
-            self::$instance = new self();
-        }
-        return self::$instance;
     }
 
     public function tracer(): TracerInterface

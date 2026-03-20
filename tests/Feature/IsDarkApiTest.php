@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace tests\Feature;
 
 use app\controller\Api\V1\IsDarkController;
+use app\service\OpenTelemetryService;
 use app\service\ResponseFormatterService;
 use app\service\SunCalcService;
 use PHPUnit\Framework\TestCase;
@@ -16,9 +17,10 @@ class IsDarkApiTest extends TestCase
 
     protected function setUp(): void
     {
-        $sunCalc = new SunCalcService();
+        $otel = new OpenTelemetryService();
+        $sunCalc = new SunCalcService($otel);
         $formatter = new ResponseFormatterService();
-        $this->controller = new IsDarkController($sunCalc, $formatter);
+        $this->controller = new IsDarkController($sunCalc, $formatter, $otel);
     }
 
     /**

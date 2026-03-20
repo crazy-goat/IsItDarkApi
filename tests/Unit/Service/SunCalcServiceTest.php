@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace tests\Unit\Service;
 
+use app\service\OpenTelemetryService;
 use app\service\SunCalcService;
 use PHPUnit\Framework\TestCase;
 
@@ -13,7 +14,7 @@ class SunCalcServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->service = new SunCalcService();
+        $this->service = new SunCalcService(new OpenTelemetryService());
     }
 
     public function testCalculateReturnsRequiredFields(): void
