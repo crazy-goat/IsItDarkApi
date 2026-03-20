@@ -15,8 +15,11 @@ class TelemetryMiddleware implements MiddlewareInterface
 {
     private const array IGNORED_PATHS = ['/health'];
 
-    public function __construct(private readonly OpenTelemetryService $otel)
+    private readonly OpenTelemetryService $otel;
+
+    public function __construct()
     {
+        $this->otel = resolve(OpenTelemetryService::class);
     }
 
     public function process(Request $request, callable $handler): Response
