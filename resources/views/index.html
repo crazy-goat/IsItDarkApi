@@ -328,7 +328,7 @@
         let currentLng = 0;
         let cities = [];
         const mapWidth = 950;
-        const mapHeight = 620;
+        const mapHeight = 500;
 
         // Load cities data
         async function loadCities() {
@@ -345,6 +345,9 @@
         // Initialize
         loadCities();
         loadMap();
+
+        // Re-fit map when container resizes (e.g. sidebar opens/closes)
+        new ResizeObserver(() => fitMapToContainer()).observe(document.getElementById('mapContainer'));
 
         // Map functions
         function loadMap() {
@@ -382,8 +385,8 @@
             const scaleX = rect.width / mapWidth;
             const scaleY = rect.height / mapHeight;
             
-            // Choose the larger scale to fill the screen
-            currentScale = Math.max(scaleX, scaleY);
+            // Choose the smaller scale so the entire map fits
+            currentScale = Math.min(scaleX, scaleY);
             
             // Center the map
             offsetX = (rect.width - mapWidth * currentScale) / 2;
@@ -503,16 +506,17 @@
         }
 
         function updateMarkerFromCoords(lat, lng) {
-            const x = ((lng + 180) / 360) * mapWidth;
-            const y = ((90 - lat) / 180) * mapHeight;
-            
-            const mapSvg = document.getElementById('map');
-            if (!mapSvg) return;
-            const rect = mapSvg.getBoundingClientRect();
-            const screenX = (x / mapWidth) * rect.width;
-            const screenY = (y / mapHeight) * rect.height;
-            
-            updateMarker(screenX, screenY);
+            const svgX = ((lng + 180) / 360) * mapWidth;
+            const svgY = ((90 - lat) / 180) * mapHeight;
+
+            const screenX = svgX * currentScale + offsetX;
+            const screenY = svgY * currentScale + offsetY;
+
+            const marker = document.getElementById('marker');
+            if (!marker) return;
+            marker.style.display = 'block';
+            marker.style.left = screenX + 'px';
+            marker.style.top = screenY + 'px';
         }
 
         function zoomMap(factor, centerX, centerY) {
@@ -524,10 +528,10 @@
 
             const oldScale = currentScale;
             
-            // Calculate minimum scale to ensure it fills the viewport
+            // Calculate minimum scale so the entire map fits
             const minScaleX = rect.width / mapWidth;
             const minScaleY = rect.height / mapHeight;
-            const minScale = Math.max(minScaleX, minScaleY);
+            const minScale = Math.min(minScaleX, minScaleY);
             
             currentScale *= factor;
             currentScale = Math.max(minScale, Math.min(10, currentScale));
