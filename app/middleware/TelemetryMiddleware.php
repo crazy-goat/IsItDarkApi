@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace app\middleware;
 
 use app\service\OpenTelemetryService;
@@ -11,8 +13,16 @@ use Webman\MiddlewareInterface;
 
 class TelemetryMiddleware implements MiddlewareInterface
 {
+    private const array IGNORED_PATHS = ['/health'];
+
     public function process(Request $request, callable $handler): Response
     {
+        if (in_array($request->path(), self::IGNORED_PATHS, true)) {
+            /** @var Response $response */
+            $response = $handler($request);
+            return $response;
+        }
+
         $otel = OpenTelemetryService::getInstance();
         $startTime = hrtime(true);
 
@@ -21,12 +31,13 @@ class TelemetryMiddleware implements MiddlewareInterface
             ->setSpanKind(SpanKind::KIND_SERVER)
             ->setAttribute('http.method', $request->method())
             ->setAttribute('http.url', $request->path())
-            ->setAttribute('http.query', $request->queryString() ?? '')
+            ->setAttribute('http.query', $request->queryString())
             ->startSpan();
 
         $scope = $span->activate();
 
         try {
+            /** @var Response $response */
             $response = $handler($request);
             $statusCode = $response->getStatusCode();
 
@@ -48,7 +59,7 @@ class TelemetryMiddleware implements MiddlewareInterface
 
             $route = $request->path();
             $method = $request->method();
-            $status = isset($response) ? (string) $response->getStatusCode() : '500';
+            $status = isset($response) ? (string) ($response->getStatusCode()) : '500';
 
             $otel->requestCounter()->add(1, [
                 'http.method' => $method,

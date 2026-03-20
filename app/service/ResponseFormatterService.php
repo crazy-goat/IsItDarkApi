@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace app\service;
 
 class ResponseFormatterService
 {
+    /**
+     * @param array<mixed> $data
+     */
     public function format(array $data, string $format): string
     {
         return match ($format) {
@@ -14,25 +19,33 @@ class ResponseFormatterService
         };
     }
 
+    /**
+     * @param array<mixed> $data
+     */
     private function toJson(array $data): string
     {
-        return json_encode($data, JSON_PRETTY_PRINT);
+        return json_encode($data, JSON_PRETTY_PRINT) ?: '{}';
     }
 
+    /**
+     * @param array<mixed> $data
+     */
     private function toXml(array $data): string
     {
         $xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
         $xml .= "<response>\n";
         $xml .= $this->arrayToXml($data, 1);
-        $xml .= "</response>";
-        return $xml;
+        return $xml . "</response>";
     }
 
+    /**
+     * @param array<mixed> $data
+     */
     private function arrayToXml(array $data, int $indent): string
     {
         $xml = '';
         $spaces = str_repeat('  ', $indent);
-        
+
         foreach ($data as $key => $value) {
             $key = $this->sanitizeXmlKey($key);
             if (is_bool($value)) {
@@ -43,28 +56,31 @@ class ResponseFormatterService
                 $xml .= $this->arrayToXml($value, $indent + 1);
                 $xml .= "{$spaces}</{$key}>\n";
             } else {
-                $xml .= "{$spaces}<{$key}>" . htmlspecialchars((string)$value) . "</{$key}>\n";
+                $strValue = is_scalar($value) ? (string) $value : '';
+                $xml .= "{$spaces}<{$key}>" . htmlspecialchars($strValue) . "</{$key}>\n";
             }
         }
-        
+
         return $xml;
     }
 
     private function sanitizeXmlKey(string $key): string
     {
-        return preg_replace('/[^a-zA-Z0-9_]/', '_', $key);
+        return preg_replace('/[^a-zA-Z0-9_]/', '_', $key) ?? $key;
     }
 
+    /** @param array<mixed> $data */
     private function toYaml(array $data): string
     {
         return $this->arrayToYaml($data, 0);
     }
 
+    /** @param array<mixed> $data */
     private function arrayToYaml(array $data, int $indent): string
     {
         $yaml = '';
         $spaces = str_repeat('  ', $indent);
-        
+
         foreach ($data as $key => $value) {
             if (is_bool($value)) {
                 $value = $value ? 'true' : 'false';
@@ -76,16 +92,16 @@ class ResponseFormatterService
                 $yaml .= "{$spaces}{$key}: " . $this->formatYamlValue($value) . "\n";
             }
         }
-        
+
         return $yaml;
     }
 
-    private function formatYamlValue($value): string
+    private function formatYamlValue(mixed $value): string
     {
-        if (is_string($value) && (strpos($value, ':') !== false || strpos($value, '#') !== false)) {
+        if (is_string($value) && (str_contains($value, ':') || str_contains($value, '#'))) {
             return "'" . str_replace("'", "''", $value) . "'";
         }
-        return (string) $value;
+        return is_scalar($value) ? (string) $value : '';
     }
 
     public function getContentType(string $format): string
@@ -100,10 +116,10 @@ class ResponseFormatterService
 
     public function detectFormat(string $acceptHeader): string
     {
-        if (strpos($acceptHeader, 'application/xml') !== false || strpos($acceptHeader, 'text/xml') !== false) {
+        if (str_contains($acceptHeader, 'application/xml') || str_contains($acceptHeader, 'text/xml')) {
             return 'xml';
         }
-        if (strpos($acceptHeader, 'application/x-yaml') !== false || strpos($acceptHeader, 'text/yaml') !== false) {
+        if (str_contains($acceptHeader, 'application/x-yaml') || str_contains($acceptHeader, 'text/yaml')) {
             return 'yaml';
         }
         return 'json';

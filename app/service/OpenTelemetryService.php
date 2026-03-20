@@ -1,24 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace app\service;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\HttpFactory;
 use OpenTelemetry\API\Metrics\CounterInterface;
 use OpenTelemetry\API\Metrics\HistogramInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\TracerInterface;
-use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Export\Http\PsrTransportFactory;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
-use OpenTelemetry\SDK\Common\Time\ClockInterface;
 use OpenTelemetry\SDK\Metrics\MeterProvider;
+use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use OpenTelemetry\SDK\Metrics\MetricReader\ExportingReader;
-use OpenTelemetry\SDK\Metrics\View\CriteriaViewRegistry;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
+use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use OpenTelemetry\SemConv\ResourceAttributes;
 
 class OpenTelemetryService
@@ -27,14 +26,14 @@ class OpenTelemetryService
 
     private TracerInterface $tracer;
     private MeterInterface $meter;
-    private ?TracerProvider $tracerProvider = null;
-    private ?MeterProvider $meterProvider = null;
+    private ?TracerProviderInterface $tracerProvider = null;
+    private ?MeterProviderInterface $meterProvider = null;
     private CounterInterface $requestCounter;
     private HistogramInterface $requestDuration;
     private CounterInterface $isDarkQueryCounter;
     private HistogramInterface $latDistribution;
     private HistogramInterface $lngDistribution;
-    private bool $enabled;
+    private readonly bool $enabled;
 
     private function __construct()
     {
@@ -59,7 +58,7 @@ class OpenTelemetryService
 
     public static function getInstance(): self
     {
-        if (self::$instance === null) {
+        if (!self::$instance instanceof \app\service\OpenTelemetryService) {
             self::$instance = new self();
         }
         return self::$instance;

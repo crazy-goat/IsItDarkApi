@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\Feature;
 
+use app\controller\Api\V1\IsDarkController;
+use app\service\ResponseFormatterService;
+use app\service\SunCalcService;
 use PHPUnit\Framework\TestCase;
 use support\Request;
-use app\controller\Api\V1\IsDarkController;
-use app\service\SunCalcService;
-use app\service\ResponseFormatterService;
 
 class IsDarkApiTest extends TestCase
 {
@@ -19,22 +21,26 @@ class IsDarkApiTest extends TestCase
         $this->controller = new IsDarkController($sunCalc, $formatter);
     }
 
+    /**
+     * @param array<string, string> $query
+     * @param array<string, string> $headers
+     */
     private function createRequest(string $uri, array $query = [], array $headers = []): Request
     {
         // Build query string
         $queryString = http_build_query($query);
-        $fullUri = $queryString ? $uri . '?' . $queryString : $uri;
-        
+        $fullUri = $queryString !== '' && $queryString !== '0' ? $uri . '?' . $queryString : $uri;
+
         // Build raw HTTP request
         $rawHeaders = "GET {$fullUri} HTTP/1.1\r\n";
         $rawHeaders .= "Host: localhost\r\n";
-        
+
         foreach ($headers as $key => $value) {
             $rawHeaders .= "{$key}: {$value}\r\n";
         }
-        
+
         $rawHeaders .= "\r\n";
-        
+
         return new Request($rawHeaders);
     }
 
@@ -127,7 +133,8 @@ class IsDarkApiTest extends TestCase
         $response = $this->controller->index($request);
 
         $body = json_decode($response->rawBody(), true);
-        
+        $this->assertIsArray($body);
+
         $this->assertArrayHasKey('is_dark', $body);
         $this->assertArrayHasKey('sunrise', $body);
         $this->assertArrayHasKey('sunset', $body);
@@ -139,7 +146,8 @@ class IsDarkApiTest extends TestCase
         $response = $this->controller->index($request);
 
         $body = json_decode($response->rawBody(), true);
-        
+        $this->assertIsArray($body);
+
         // next_change_at should be in headers (Expires), not in simple body
         $this->assertArrayNotHasKey('next_change_at', $body);
         $this->assertArrayNotHasKey('next_change', $body);
@@ -169,6 +177,7 @@ class IsDarkApiTest extends TestCase
 
         $this->assertEquals('application/json', $response->getHeader('Content-Type'));
         $body = json_decode($response->rawBody(), true);
+        $this->assertIsArray($body);
         $this->assertArrayHasKey('error', $body);
         $this->assertArrayHasKey('message', $body);
     }

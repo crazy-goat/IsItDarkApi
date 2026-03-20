@@ -6,6 +6,8 @@
  * Source: GeoNames.org
  */
 
+declare(strict_types=1);
+
 return [
     ['name' => 'Warsaw', 'lat' => 52.23, 'lng' => 21.01, 'country' => 'PL'],
     ['name' => 'Krakow', 'lat' => 50.06, 'lng' => 19.95, 'country' => 'PL'],

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace app\bootstrap;
 
 use app\service\OpenTelemetryService;
@@ -16,7 +18,7 @@ class OpenTelemetry
         $otel = OpenTelemetryService::getInstance();
 
         if ($otel->isEnabled()) {
-            Timer::add(5, function () use ($otel) {
+            Timer::add(5, function () use ($otel): void {
                 $otel->forceFlush();
             });
         }

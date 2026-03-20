@@ -1,0 +1,7 @@
+parameters:
+    level: max
+    paths:
+        - app
+        - tests
+    excludePaths:
+        - app/model/Test.php
