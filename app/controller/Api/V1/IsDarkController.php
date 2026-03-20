@@ -22,9 +22,6 @@ class IsDarkController
 
     public function index(Request $request): Response
     {
-        $sunCalc = $this->sunCalc;
-        $formatter = $this->formatter;
-
         // Pobieramy parametry
         $latRaw = $request->get('lat');
         $lngRaw = $request->get('lng');
@@ -32,7 +29,7 @@ class IsDarkController
 
         // Walidacja - czy parametry istnieją
         if ($latRaw === null || $lngRaw === null) {
-            return $this->errorResponse($request, $formatter, 400, 'Missing required parameters: lat and lng');
+            return $this->errorResponse($request, 400, 'Missing required parameters: lat and lng');
         }
 
         // Konwersja na float
@@ -40,18 +37,18 @@ class IsDarkController
         $lng = (float) (is_scalar($lngRaw) ? $lngRaw : '');
 
         // Zaokrąglenie do 2 miejsc po przecinku
-        $coords = $sunCalc->roundCoordinates($lat, $lng);
+        $coords = $this->sunCalc->roundCoordinates($lat, $lng);
         $lat = $coords['lat'];
         $lng = $coords['lng'];
 
         // Walidacja zakresów
-        $validation = $sunCalc->validate($lat, $lng);
+        $validation = $this->sunCalc->validate($lat, $lng);
         if (!$validation['valid']) {
-            return $this->errorResponse($request, $formatter, 422, $validation['error'] ?? 'Validation error');
+            return $this->errorResponse($request, 422, $validation['error'] ?? 'Validation error');
         }
 
         // Obliczenia
-        $result = $sunCalc->calculate($lat, $lng);
+        $result = $this->sunCalc->calculate($lat, $lng);
 
         // Metryki biznesowe
         $otel = $this->otel ?? Container::get(OpenTelemetryService::class);
@@ -92,11 +89,9 @@ class IsDarkController
         }
 
         // Formatowanie odpowiedzi
-        $acceptHeaderRaw = $request->header('Accept', 'application/json');
-        $acceptHeader = is_string($acceptHeaderRaw) ? $acceptHeaderRaw : 'application/json';
-        $format = $formatter->detectFormat($acceptHeader);
-        $body = $formatter->format($responseData, $format);
-        $contentType = $formatter->getContentType($format);
+        $format = $this->detectFormat($request);
+        $body = $this->formatter->format($responseData, $format);
+        $contentType = $this->formatter->getContentType($format);
 
         $rawNextChange = $result['next_change_at'];
         $nextChangeAt = is_int($rawNextChange)
@@ -113,15 +108,19 @@ class IsDarkController
         return new Response(200, $headers, $body);
     }
 
+    private function detectFormat(Request $request): string
+    {
+        $acceptHeaderRaw = $request->header('Accept', 'application/json');
+        $acceptHeader = is_string($acceptHeaderRaw) ? $acceptHeaderRaw : 'application/json';
+        return $this->formatter->detectFormat($acceptHeader);
+    }
+
     private function errorResponse(
         Request $request,
-        ResponseFormatterService $formatter,
         int $statusCode,
         string $message,
     ): Response {
-        $acceptHeaderRaw = $request->header('Accept', 'application/json');
-        $acceptHeader = is_string($acceptHeaderRaw) ? $acceptHeaderRaw : 'application/json';
-        $format = $formatter->detectFormat($acceptHeader);
+        $format = $this->detectFormat($request);
 
         $data = [
             'error' => true,
@@ -129,8 +128,8 @@ class IsDarkController
             'message' => $message,
         ];
 
-        $body = $formatter->format($data, $format);
-        $contentType = $formatter->getContentType($format);
+        $body = $this->formatter->format($data, $format);
+        $contentType = $this->formatter->getContentType($format);
 
         return new Response($statusCode, ['Content-Type' => $contentType], $body);
     }
