@@ -7,7 +7,6 @@ namespace app\controller\Api\V1;
 use app\service\OpenTelemetryService;
 use app\service\ResponseFormatterService;
 use app\service\SunCalcService;
-use support\Container;
 use support\Request;
 use support\Response;
 
@@ -44,7 +43,7 @@ class IsDarkController
 
         $result = $this->sunCalc->calculate($lat, $lng);
 
-        $otel = $this->otel ?? Container::get(OpenTelemetryService::class);
+        $otel = $this->otel ?? resolve(OpenTelemetryService::class);
         $otel->isDarkQueryCounter()->add(1, [
             'result' => $result['is_dark'] ? 'dark' : 'light',
         ]);

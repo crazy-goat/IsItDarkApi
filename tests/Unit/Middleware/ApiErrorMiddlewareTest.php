@@ -45,6 +45,7 @@ class ApiErrorMiddlewareTest extends TestCase
 
         $this->assertEquals(404, $response->getStatusCode());
         $body = json_decode($response->rawBody(), true);
+        $this->assertIsArray($body);
         $this->assertTrue($body['error']);
         $this->assertEquals(404, $body['status']);
     }
@@ -70,6 +71,7 @@ class ApiErrorMiddlewareTest extends TestCase
 
         $this->assertEquals(500, $response->getStatusCode());
         $body = json_decode($response->rawBody(), true);
+        $this->assertIsArray($body);
         $this->assertTrue($body['error']);
     }
 

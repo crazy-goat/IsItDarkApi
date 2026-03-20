@@ -18,6 +18,7 @@ class RoutesTest extends TestCase
         $this->assertNotEmpty($cities);
 
         foreach ($cities as $city) {
+            $this->assertIsArray($city);
             $this->assertArrayHasKey('name', $city);
             $this->assertArrayHasKey('lat', $city);
             $this->assertArrayHasKey('lng', $city);

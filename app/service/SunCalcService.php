@@ -8,7 +8,6 @@ use CrazyGoat\IsItDark\IsItDark;
 use CrazyGoat\IsItDark\Location;
 use DateTimeImmutable;
 use OpenTelemetry\API\Trace\SpanKind;
-use support\Container;
 
 class SunCalcService
 {
@@ -25,7 +24,7 @@ class SunCalcService
      */
     public function calculate(float $lat, float $lng): array
     {
-        $otel = $this->otel ?? Container::get(OpenTelemetryService::class);
+        $otel = $this->otel ?? resolve(OpenTelemetryService::class);
         $span = $otel->tracer()
             ->spanBuilder('SunCalcService::calculate')
             ->setSpanKind(SpanKind::KIND_INTERNAL)

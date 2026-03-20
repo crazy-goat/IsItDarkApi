@@ -43,8 +43,10 @@ class CorsMiddlewareTest extends TestCase
         $response = $this->middleware->process($request, $handler);
 
         $this->assertEquals('*', $response->getHeader('Access-Control-Allow-Origin'));
-        $this->assertStringContainsString('GET', $response->getHeader('Access-Control-Allow-Methods'));
-        $this->assertStringContainsString('OPTIONS', $response->getHeader('Access-Control-Allow-Methods'));
+        $allowMethods = $response->getHeader('Access-Control-Allow-Methods');
+        $this->assertIsString($allowMethods);
+        $this->assertStringContainsString('GET', $allowMethods);
+        $this->assertStringContainsString('OPTIONS', $allowMethods);
     }
 
     public function testGetRequestHasCorsHeaders(): void
