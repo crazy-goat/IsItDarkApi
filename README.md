@@ -33,6 +33,54 @@ curl -H "Accept: application/xml" "http://localhost:8787/api/v1/is-dark?lat=52.2
 curl -H "Accept: application/x-yaml" "http://localhost:8787/api/v1/is-dark?lat=52.23&lng=21.01"
 ```
 
+### Code Examples
+
+**JavaScript (fetch)**
+
+```javascript
+const response = await fetch(
+  'http://localhost:8787/api/v1/is-dark?lat=52.23&lng=21.01'
+);
+const data = await response.json();
+console.log(data.is_dark); // true or false
+```
+
+**JavaScript with detailed data**
+
+```javascript
+const response = await fetch(
+  'http://localhost:8787/api/v1/is-dark?lat=52.23&lng=21.01&detailed=true'
+);
+const data = await response.json();
+console.log(data.state); // "day", "night", "civil_twilight", etc.
+```
+
+**Python**
+
+```python
+import requests
+
+response = requests.get(
+    'http://localhost:8787/api/v1/is-dark',
+    params={'lat': 52.23, 'lng': 21.01}
+)
+data = response.json()
+print(data['is_dark'])  # True or False
+```
+
+**Python with XML response**
+
+```python
+import requests
+
+response = requests.get(
+    'http://localhost:8787/api/v1/is-dark',
+    params={'lat': 52.23, 'lng': 21.01},
+    headers={'Accept': 'application/xml'}
+)
+print(response.text)  # XML response
+```
+
 ### Endpoint
 
 ```
