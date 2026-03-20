@@ -32,7 +32,7 @@ class ResponseFormatterService
      */
     private function toXml(array $data): string
     {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+        $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         $xml .= "<response>\n";
         $xml .= $this->arrayToXml($data, 1);
         return $xml . "</response>";

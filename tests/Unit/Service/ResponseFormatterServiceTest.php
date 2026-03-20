@@ -138,4 +138,13 @@ class ResponseFormatterServiceTest extends TestCase
 
         $this->assertStringContainsString("'Test: value # comment'", $yaml);
     }
+
+    public function testXmlOutputContainsRealNewlines(): void
+    {
+        $data = ['key' => 'value'];
+        $result = $this->formatter->format($data, 'xml');
+
+        $this->assertStringNotContainsString('\n', $result);
+        $this->assertStringContainsString("\n", $result);
+    }
 }
