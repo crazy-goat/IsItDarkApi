@@ -80,6 +80,6 @@ jobs:
       - name: Trigger Dokploy Deployment
         run: |
           IMAGE_TAG="${{ github.ref_name }}"
-          curl -X POST https://dokploy.crazy-goat.com/api/deploy/GTqbHMtCRqf-SDlbxQrSz \
+          curl -X POST ${{ secrets.DOKPLOY_WEBHOOK_URL }} \
             -H "Content-Type: application/json" \
             -d '{"image": "ghcr.io/crazy-goat/isitdarkapi:'"$IMAGE_TAG"'", "tag": "'"$IMAGE_TAG"'"}'
