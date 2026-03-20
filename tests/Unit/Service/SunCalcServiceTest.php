@@ -34,7 +34,6 @@ class SunCalcServiceTest extends TestCase
     {
         $result = $this->service->calculate(52.23, 21.01);
 
-        // Szczegółowe pola (cache'owalne - stałe dla danego dnia)
         $this->assertArrayHasKey('solar_noon', $result);
         $this->assertArrayHasKey('civil_dawn', $result);
         $this->assertArrayHasKey('civil_dusk', $result);
@@ -79,7 +78,6 @@ class SunCalcServiceTest extends TestCase
     {
         $result = $this->service->calculate(52.23, 21.01);
 
-        // Tylko pola cache'owalne (stałe dla danego dnia)
         $dateFields = ['sunrise', 'sunset', 'solar_noon', 'civil_dawn', 'civil_dusk',
                       'nautical_dawn', 'nautical_dusk', 'astronomical_dawn', 'astronomical_dusk'];
 
@@ -111,7 +109,7 @@ class SunCalcServiceTest extends TestCase
         $this->assertIsInt($result['night_length']);
         $this->assertGreaterThanOrEqual(0, $result['day_length']);
         $this->assertGreaterThanOrEqual(0, $result['night_length']);
-        // Dzień + noc = 24h (86400s)
+        // Day + night = 24h (86400s)
         $this->assertEquals(86400, $result['day_length'] + $result['night_length']);
     }
 

@@ -22,35 +22,28 @@ class IsDarkController
 
     public function index(Request $request): Response
     {
-        // Pobieramy parametry
         $latRaw = $request->get('lat');
         $lngRaw = $request->get('lng');
         $detailed = $request->get('detailed', 'false') === 'true';
 
-        // Walidacja - czy parametry istnieją
         if ($latRaw === null || $lngRaw === null) {
             return $this->errorResponse($request, 400, 'Missing required parameters: lat and lng');
         }
 
-        // Konwersja na float
         $lat = (float) (is_scalar($latRaw) ? $latRaw : '');
         $lng = (float) (is_scalar($lngRaw) ? $lngRaw : '');
 
-        // Zaokrąglenie do 2 miejsc po przecinku
         $coords = $this->sunCalc->roundCoordinates($lat, $lng);
         $lat = $coords['lat'];
         $lng = $coords['lng'];
 
-        // Walidacja zakresów
         $validation = $this->sunCalc->validate($lat, $lng);
         if (!$validation['valid']) {
             return $this->errorResponse($request, 422, $validation['error'] ?? 'Validation error');
         }
 
-        // Obliczenia
         $result = $this->sunCalc->calculate($lat, $lng);
 
-        // Metryki biznesowe
         $otel = $this->otel ?? Container::get(OpenTelemetryService::class);
         $otel->isDarkQueryCounter()->add(1, [
             'result' => $result['is_dark'] ? 'dark' : 'light',
@@ -58,14 +51,12 @@ class IsDarkController
         $otel->latDistribution()->record($lat);
         $otel->lngDistribution()->record($lng);
 
-        // Przygotowanie odpowiedzi
         $responseData = [
             'is_dark' => $result['is_dark'],
             'sunrise' => $result['sunrise'],
             'sunset' => $result['sunset'],
         ];
 
-        // Dodajemy szczegółowe dane jeśli requested
         if ($detailed) {
             $responseData = array_merge($responseData, [
                 'is_day' => $result['is_day'],
@@ -88,7 +79,6 @@ class IsDarkController
             ]);
         }
 
-        // Formatowanie odpowiedzi
         $format = $this->detectFormat($request);
         $body = $this->formatter->format($responseData, $format);
         $contentType = $this->formatter->getContentType($format);
@@ -98,7 +88,7 @@ class IsDarkController
             ? $rawNextChange
             : (int) (is_scalar($rawNextChange) ? $rawNextChange : 0);
 
-        // Headers z cache (ważne do następnej zmiany - sunrise lub sunset)
+        // Cache until next sunrise/sunset transition
         $headers = [
             'Content-Type' => $contentType,
             'Expires' => gmdate('D, d M Y H:i:s T', $nextChangeAt),
