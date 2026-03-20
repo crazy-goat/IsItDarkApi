@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace app\service;
 
 use CrazyGoat\IsItDark\IsItDark;
 use CrazyGoat\IsItDark\Location;
 use DateTimeImmutable;
-use DateTimeZone;
 use OpenTelemetry\API\Trace\SpanKind;
 
 class SunCalcService
@@ -15,7 +16,7 @@ class SunCalcService
      *
      * @param float $lat Szerokość geograficzna (-90 do 90)
      * @param float $lng Długość geograficzna (-180 do 180)
-     * @return array Szczegółowe dane o stanie dnia/nocy
+     * @return array<mixed> Szczegółowe dane o stanie dnia/nocy
      */
     public function calculate(float $lat, float $lng): array
     {
@@ -36,18 +37,19 @@ class SunCalcService
         }
     }
 
+    /** @return array<mixed> */
     private function doCalculate(float $lat, float $lng): array
     {
         $location = new Location($lat, $lng);
         $isItDark = new IsItDark($location);
-        
+
         $data = $isItDark->toArray();
-        
+
         // Określamy czas ważności odpowiedzi (następna zmiana - sunrise lub sunset)
         $now = time();
         $nextSunrise = $isItDark->nextSunrise()?->getTimestamp();
         $nextSunset = $isItDark->nextSunset()?->getTimestamp();
-        
+
         // Wybieramy to co nastąpi wcześniej
         if ($nextSunrise && $nextSunset) {
             $expiresAt = min($nextSunrise, $nextSunset);
@@ -87,7 +89,7 @@ class SunCalcService
             'next_change_at' => $expiresAt,
         ];
     }
-    
+
     /**
      * Formatuje DateTimeImmutable do ISO 8601 lub zwraca null
      */
@@ -99,6 +101,7 @@ class SunCalcService
     /**
      * Zaokrągla współrzędne do 2 miejsc po przecinku
      */
+    /** @return array{lat: float, lng: float} */
     public function roundCoordinates(float $lat, float $lng): array
     {
         return [
@@ -110,7 +113,7 @@ class SunCalcService
     /**
      * Waliduje współrzędne
      *
-     * @return array ['valid' => bool, 'error' => string|null]
+     * @return array{valid: bool, error: string|null}
      */
     public function validate(float $lat, float $lng): array
     {

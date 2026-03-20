@@ -20,7 +20,7 @@ class HtmlCacheService
             return;
         }
         
-        $this->html = file_get_contents($path);
+        $this->html = file_get_contents($path) ?: $this->getDefaultHtml();
     }
 
     public function getHtml(): string

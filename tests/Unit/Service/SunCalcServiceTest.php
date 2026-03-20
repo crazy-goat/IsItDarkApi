@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\Unit\Service;
 
 use app\service\SunCalcService;
@@ -77,14 +79,14 @@ class SunCalcServiceTest extends TestCase
         $result = $this->service->calculate(52.23, 21.01);
 
         // Tylko pola cache'owalne (stałe dla danego dnia)
-        $dateFields = ['sunrise', 'sunset', 'solar_noon', 'civil_dawn', 'civil_dusk', 
+        $dateFields = ['sunrise', 'sunset', 'solar_noon', 'civil_dawn', 'civil_dusk',
                       'nautical_dawn', 'nautical_dusk', 'astronomical_dawn', 'astronomical_dusk'];
 
         foreach ($dateFields as $field) {
             if ($result[$field] !== null) {
                 $this->assertMatchesRegularExpression(
                     '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/',
-                    $result[$field],
+                    is_string($result[$field]) ? $result[$field] : '',
                     "Field {$field} should be valid ISO 8601 or null"
                 );
             }

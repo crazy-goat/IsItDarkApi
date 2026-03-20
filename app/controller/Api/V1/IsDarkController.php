@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace app\controller\Api\V1;
 
 use app\service\OpenTelemetryService;
@@ -10,24 +12,30 @@ use support\Response;
 
 class IsDarkController
 {
+    public function __construct(
+        private readonly SunCalcService $sunCalc = new SunCalcService(),
+        private readonly ResponseFormatterService $formatter = new ResponseFormatterService(),
+    ) {
+    }
+
     public function index(Request $request): Response
     {
-        $sunCalc = new SunCalcService();
-        $formatter = new ResponseFormatterService();
+        $sunCalc = $this->sunCalc;
+        $formatter = $this->formatter;
 
         // Pobieramy parametry
-        $lat = $request->get('lat');
-        $lng = $request->get('lng');
+        $latRaw = $request->get('lat');
+        $lngRaw = $request->get('lng');
         $detailed = $request->get('detailed', 'false') === 'true';
 
         // Walidacja - czy parametry istnieją
-        if ($lat === null || $lng === null) {
+        if ($latRaw === null || $lngRaw === null) {
             return $this->errorResponse($request, $formatter, 400, 'Missing required parameters: lat and lng');
         }
 
         // Konwersja na float
-        $lat = (float) $lat;
-        $lng = (float) $lng;
+        $lat = (float) (is_scalar($latRaw) ? $latRaw : '');
+        $lng = (float) (is_scalar($lngRaw) ? $lngRaw : '');
 
         // Zaokrąglenie do 2 miejsc po przecinku
         $coords = $sunCalc->roundCoordinates($lat, $lng);
@@ -37,7 +45,7 @@ class IsDarkController
         // Walidacja zakresów
         $validation = $sunCalc->validate($lat, $lng);
         if (!$validation['valid']) {
-            return $this->errorResponse($request, $formatter, 422, $validation['error']);
+            return $this->errorResponse($request, $formatter, 422, $validation['error'] ?? 'Validation error');
         }
 
         // Obliczenia
@@ -82,24 +90,35 @@ class IsDarkController
         }
 
         // Formatowanie odpowiedzi
-        $acceptHeader = $request->header('Accept', 'application/json');
+        $acceptHeaderRaw = $request->header('Accept', 'application/json');
+        $acceptHeader = is_string($acceptHeaderRaw) ? $acceptHeaderRaw : 'application/json';
         $format = $formatter->detectFormat($acceptHeader);
         $body = $formatter->format($responseData, $format);
         $contentType = $formatter->getContentType($format);
 
+        $rawNextChange = $result['next_change_at'];
+        $nextChangeAt = is_int($rawNextChange)
+            ? $rawNextChange
+            : (int) (is_scalar($rawNextChange) ? $rawNextChange : 0);
+
         // Headers z cache (ważne do następnej zmiany - sunrise lub sunset)
         $headers = [
             'Content-Type' => $contentType,
-            'Expires' => gmdate('D, d M Y H:i:s T', $result['next_change_at']),
-            'Cache-Control' => 'public, max-age=' . ($result['next_change_at'] - time()),
+            'Expires' => gmdate('D, d M Y H:i:s T', $nextChangeAt),
+            'Cache-Control' => 'public, max-age=' . ($nextChangeAt - time()),
         ];
 
         return new Response(200, $headers, $body);
     }
 
-    private function errorResponse(Request $request, ResponseFormatterService $formatter, int $statusCode, string $message): Response
-    {
-        $acceptHeader = $request->header('Accept', 'application/json');
+    private function errorResponse(
+        Request $request,
+        ResponseFormatterService $formatter,
+        int $statusCode,
+        string $message,
+    ): Response {
+        $acceptHeaderRaw = $request->header('Accept', 'application/json');
+        $acceptHeader = is_string($acceptHeaderRaw) ? $acceptHeaderRaw : 'application/json';
         $format = $formatter->detectFormat($acceptHeader);
 
         $data = [

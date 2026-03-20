@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of webman.
  *
@@ -11,6 +12,8 @@
  * @link      http://www.workerman.net/
  * @license   http://www.opensource.org/licenses/mit-license.php MIT License
  */
+
+declare(strict_types=1);
 
 namespace app\process;
 
@@ -27,29 +30,16 @@ use Workerman\Worker;
  */
 class Monitor
 {
-    /**
-     * @var array
-     */
+    /** @var array<string> */
     protected array $paths = [];
 
-    /**
-     * @var array
-     */
-    protected array $extensions = [];
-
-    /**
-     * @var array
-     */
+    /** @var array<string, int> */
     protected array $loadedFiles = [];
 
-    /**
-     * @var int
-     */
     protected int $ppid = 0;
 
     /**
      * Pause monitor
-     * @return void
      */
     public static function pause(): void
     {
@@ -58,7 +48,6 @@ class Monitor
 
     /**
      * Resume monitor
-     * @return void
      */
     public static function resume(): void
     {
@@ -70,7 +59,6 @@ class Monitor
 
     /**
      * Whether monitor is paused
-     * @return bool
      */
     public static function isPaused(): bool
     {
@@ -80,7 +68,6 @@ class Monitor
 
     /**
      * Lock file
-     * @return string
      */
     protected static function lockFile(): string
     {
@@ -89,16 +76,15 @@ class Monitor
 
     /**
      * FileMonitor constructor.
-     * @param $monitorDir
-     * @param $monitorExtensions
-     * @param array $options
+     * @param string|string[] $monitorDir
+     * @param string[] $extensions
+     * @param array<mixed> $options
      */
-    public function __construct($monitorDir, $monitorExtensions, array $options = [])
+    public function __construct(mixed $monitorDir, protected array $extensions, array $options = [])
     {
         $this->ppid = function_exists('posix_getppid') ? posix_getppid() : 0;
         static::resume();
         $this->paths = (array)$monitorDir;
-        $this->extensions = $monitorExtensions;
         foreach (get_included_files() as $index => $file) {
             $this->loadedFiles[$file] = $index;
             if (strpos($file, 'webman-framework/src/support/App.php')) {
@@ -108,28 +94,23 @@ class Monitor
         if (!Worker::getAllWorkers()) {
             return;
         }
-        $disableFunctions = explode(',', ini_get('disable_functions'));
+        $disableFunctions = explode(',', ini_get('disable_functions') ?: '');
         if (in_array('exec', $disableFunctions, true)) {
-            echo "\nMonitor file change turned off because exec() has been disabled by disable_functions setting in " . PHP_CONFIG_FILE_PATH . "/php.ini\n";
-        } else {
-            if ($options['enable_file_monitor'] ?? true) {
-                Timer::add(1, function () {
-                    $this->checkAllFilesChange();
-                });
-            }
+            echo "\nMonitor file change turned off because exec() has been disabled"
+                . " by disable_functions setting in " . PHP_CONFIG_FILE_PATH . "/php.ini\n";
+        } elseif ($options['enable_file_monitor'] ?? true) {
+            Timer::add(1, function (): void {
+                $this->checkAllFilesChange();
+            });
         }
 
         $memoryLimit = $this->getMemoryLimit($options['memory_limit'] ?? null);
         if ($memoryLimit && ($options['enable_memory_monitor'] ?? true)) {
-            Timer::add(60, [$this, 'checkMemory'], [$memoryLimit]);
+            Timer::add(60, $this->checkMemory(...), [$memoryLimit]);
         }
     }
 
-    /**
-     * @param $monitorDir
-     * @return bool
-     */
-    public function checkFilesChange($monitorDir): bool
+    public function checkFilesChange(string $monitorDir): bool
     {
         static $lastMtime, $tooManyFilesCheck;
         if (!$lastMtime) {
@@ -143,12 +124,15 @@ class Monitor
             $iterator = [new SplFileInfo($monitorDir)];
         } else {
             // recursive traversal directory
-            $dirIterator = new RecursiveDirectoryIterator($monitorDir, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS);
+            $dirIterator = new RecursiveDirectoryIterator(
+                $monitorDir,
+                FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS
+            );
             $iterator = new RecursiveIteratorIterator($dirIterator);
         }
         $count = 0;
         foreach ($iterator as $file) {
-            $count ++;
+            $count++;
             /** @var SplFileInfo $file */
             if (is_dir($file->getRealPath())) {
                 continue;
@@ -161,13 +145,13 @@ class Monitor
                     continue;
                 }
                 $var = 0;
-                exec('"'.PHP_BINARY . '" -l ' . $file, $out, $var);
-                if ($var) {
+                exec('"' . PHP_BINARY . '" -l ' . $file, $out, $var);
+                if ($var !== 0) {
                     continue;
                 }
                 // send SIGUSR1 signal to master process for reload
                 if (DIRECTORY_SEPARATOR === '/') {
-                    if ($masterPid = $this->getMasterPid()) {
+                    if (($masterPid = $this->getMasterPid()) !== 0) {
                         echo $file . " updated and reload\n";
                         posix_kill($masterPid, SIGUSR1);
                     } else {
@@ -180,15 +164,13 @@ class Monitor
             }
         }
         if (!$tooManyFilesCheck && $count > 1000) {
-            echo "Monitor: There are too many files ($count files) in $monitorDir which makes file monitoring very slow\n";
+            echo "Monitor: There are too many files ($count files) in $monitorDir"
+                . " which makes file monitoring very slow\n";
             $tooManyFilesCheck = 1;
         }
         return false;
     }
 
-    /**
-     * @return int
-     */
     public function getMasterPid(): int
     {
         if ($this->ppid === 0) {
@@ -202,34 +184,26 @@ class Monitor
             return $this->ppid;
         }
         $cmdline = "/proc/$this->ppid/cmdline";
-        if (!is_readable($cmdline) || !($content = file_get_contents($cmdline)) || (!str_contains($content, 'WorkerMan') && !str_contains($content, 'php'))) {
+        if (
+            !is_readable($cmdline)
+            || !($content = file_get_contents($cmdline))
+            || (!str_contains($content, 'WorkerMan') && !str_contains($content, 'php'))
+        ) {
             // Process not exist
             $this->ppid = 0;
         }
         return $this->ppid;
     }
 
-    /**
-     * @return bool
-     */
     public function checkAllFilesChange(): bool
     {
         if (static::isPaused()) {
             return false;
         }
-        foreach ($this->paths as $path) {
-            if ($this->checkFilesChange($path)) {
-                return true;
-            }
-        }
-        return false;
+        return array_any($this->paths, fn(string $path): bool => $this->checkFilesChange($path));
     }
 
-    /**
-     * @param $memoryLimit
-     * @return void
-     */
-    public function checkMemory($memoryLimit): void
+    public function checkMemory(int $memoryLimit): void
     {
         if (static::isPaused() || $memoryLimit <= 0) {
             return;
@@ -247,7 +221,10 @@ class Monitor
         foreach (explode(' ', $children) as $pid) {
             $pid = (int)$pid;
             $statusFile = "/proc/$pid/status";
-            if (!is_file($statusFile) || !($status = file_get_contents($statusFile))) {
+            if (!is_file($statusFile)) {
+                continue;
+            }
+            if (!($status = file_get_contents($statusFile))) {
                 continue;
             }
             $mem = 0;
@@ -261,12 +238,7 @@ class Monitor
         }
     }
 
-    /**
-     * Get memory limit
-     * @param $memoryLimit
-     * @return int
-     */
-    protected function getMemoryLimit($memoryLimit): int
+    protected function getMemoryLimit(mixed $memoryLimit): int
     {
         if ($memoryLimit === 0) {
             return 0;
@@ -277,21 +249,20 @@ class Monitor
             $usePhpIni = true;
         }
 
+        $memoryLimitStr = is_scalar($memoryLimit) ? (string) $memoryLimit : '';
         if ($memoryLimit == -1) {
             return 0;
         }
-        $unit = strtolower($memoryLimit[strlen($memoryLimit) - 1]);
-        $memoryLimit = (int)$memoryLimit;
+        $unit = strtolower($memoryLimitStr[strlen($memoryLimitStr) - 1]);
+        $memoryLimit = (int) $memoryLimitStr;
         if ($unit === 'g') {
             $memoryLimit = 1024 * $memoryLimit;
-        } else if ($unit === 'k') {
-            $memoryLimit = ($memoryLimit / 1024);
-        } else if ($unit === 'm') {
-            $memoryLimit = (int)($memoryLimit);
-        } else if ($unit === 't') {
+        } elseif ($unit === 'k') {
+            $memoryLimit /= 1024;
+        } elseif ($unit === 't') {
             $memoryLimit = (1024 * 1024 * $memoryLimit);
         } else {
-            $memoryLimit = ($memoryLimit / (1024 * 1024));
+            $memoryLimit /= 1024 * 1024;
         }
         if ($memoryLimit < 50) {
             $memoryLimit = 50;
@@ -301,5 +272,4 @@ class Monitor
         }
         return (int)$memoryLimit;
     }
-
 }
