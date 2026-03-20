@@ -105,7 +105,7 @@ class IsDarkController
         $headers = [
             'Content-Type' => $contentType,
             'Expires' => gmdate('D, d M Y H:i:s T', $nextChangeAt),
-            'Cache-Control' => 'public, max-age=' . ($nextChangeAt - time()),
+            'Cache-Control' => 'public, max-age=' . max(0, $nextChangeAt - time()),
         ];
 
         return new Response(200, $headers, $body);
