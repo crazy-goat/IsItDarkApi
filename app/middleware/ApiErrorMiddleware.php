@@ -21,7 +21,6 @@ class ApiErrorMiddleware implements MiddlewareInterface
             /** @var Response $response */
             $response = $handler($request);
 
-            // Jeśli to błąd 4xx/5xx i ścieżka zaczyna się od /api/, formatujemy odpowiedź
             $statusCode = $response->getStatusCode();
             if ($statusCode >= 400 && str_starts_with($request->path(), '/api/')) {
                 return $this->formatErrorResponse($request, $response, $statusCode);

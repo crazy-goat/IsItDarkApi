@@ -15,7 +15,7 @@ class OpenTelemetry
     public static function start(?Worker $worker): void
     {
         Context::setStorage(new ContextStorage());
-        $otel = OpenTelemetryService::getInstance();
+        $otel = resolve(OpenTelemetryService::class);
 
         if ($otel->isEnabled()) {
             Timer::add(5, function () use ($otel): void {

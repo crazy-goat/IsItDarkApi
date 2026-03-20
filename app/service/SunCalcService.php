@@ -11,16 +11,20 @@ use OpenTelemetry\API\Trace\SpanKind;
 
 class SunCalcService
 {
+    public function __construct(private readonly ?OpenTelemetryService $otel = null)
+    {
+    }
+
     /**
-     * Oblicza czy jest ciemno oraz szczegółowe dane astronomiczne
+     * Calculates whether it is dark and detailed astronomical data
      *
-     * @param float $lat Szerokość geograficzna (-90 do 90)
-     * @param float $lng Długość geograficzna (-180 do 180)
-     * @return array<mixed> Szczegółowe dane o stanie dnia/nocy
+     * @param float $lat Latitude (-90 to 90)
+     * @param float $lng Longitude (-180 to 180)
+     * @return array<mixed> Detailed day/night state data
      */
     public function calculate(float $lat, float $lng): array
     {
-        $otel = OpenTelemetryService::getInstance();
+        $otel = $this->otel ?? resolve(OpenTelemetryService::class);
         $span = $otel->tracer()
             ->spanBuilder('SunCalcService::calculate')
             ->setSpanKind(SpanKind::KIND_INTERNAL)
@@ -45,12 +49,10 @@ class SunCalcService
 
         $data = $isItDark->toArray();
 
-        // Określamy czas ważności odpowiedzi (następna zmiana - sunrise lub sunset)
         $now = time();
         $nextSunrise = $isItDark->nextSunrise()?->getTimestamp();
         $nextSunset = $isItDark->nextSunset()?->getTimestamp();
 
-        // Wybieramy to co nastąpi wcześniej
         if ($nextSunrise && $nextSunset) {
             $expiresAt = min($nextSunrise, $nextSunset);
             $nextChange = ($nextSunrise < $nextSunset) ? 'sunrise' : 'sunset';
@@ -61,7 +63,7 @@ class SunCalcService
             $expiresAt = $nextSunset;
             $nextChange = 'sunset';
         } else {
-            // Brak wschodu/zachodu (polar day/night) - cache na 1h
+            // Polar day/night - no sunrise/sunset, cache for 1h
             $expiresAt = $now + 3600;
             $nextChange = null;
         }
@@ -91,7 +93,7 @@ class SunCalcService
     }
 
     /**
-     * Formatuje DateTimeImmutable do ISO 8601 lub zwraca null
+     * Formats DateTimeImmutable to ISO 8601 or returns null
      */
     private function formatDateTime(?DateTimeImmutable $dateTime): ?string
     {
@@ -99,7 +101,7 @@ class SunCalcService
     }
 
     /**
-     * Zaokrągla współrzędne do 2 miejsc po przecinku
+     * Rounds coordinates to 2 decimal places
      */
     /** @return array{lat: float, lng: float} */
     public function roundCoordinates(float $lat, float $lng): array
@@ -111,7 +113,7 @@ class SunCalcService
     }
 
     /**
-     * Waliduje współrzędne
+     * Validates coordinates
      *
      * @return array{valid: bool, error: string|null}
      */

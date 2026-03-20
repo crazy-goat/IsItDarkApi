@@ -7,27 +7,19 @@
       "url": "https://github.com/crazy-goat/IsItDark"
     }
   ],
-  "keywords": [
-    "high performance",
-    "http service"
-  ],
-  "homepage": "https://www.workerman.net",
+  "keywords": ["astronomy", "sunrise", "sunset", "dark", "api"],
+  "homepage": "https://github.com/crazy-goat/IsItDarkApi",
   "license": "MIT",
-  "description": "High performance HTTP Service Framework.",
+  "description": "REST API to determine if it is currently dark at any geographic location.",
   "authors": [
     {
-      "name": "walkor",
-      "email": "walkor@workerman.net",
-      "homepage": "https://www.workerman.net",
+      "name": "Piotr Halas",
       "role": "Developer"
     }
   ],
   "support": {
-    "email": "walkor@workerman.net",
-    "issues": "https://github.com/walkor/webman/issues",
-    "forum": "https://wenda.workerman.net/",
-    "wiki": "https://workerman.net/doc/webman",
-    "source": "https://github.com/walkor/webman"
+    "issues": "https://github.com/crazy-goat/IsItDarkApi/issues",
+    "source": "https://github.com/crazy-goat/IsItDarkApi"
   },
     "require": {
     "php": ">=8.4",
@@ -46,7 +38,6 @@
     "psr-4": {
       "": "./",
       "app\\": "./app",
-      "App\\": "./app",
       "app\\View\\Components\\": "./app/view/components"
     }
   },

@@ -10,18 +10,22 @@ use Webman\MiddlewareInterface;
 
 class CorsMiddleware implements MiddlewareInterface
 {
+    private const array CORS_HEADERS = [
+        'Access-Control-Allow-Origin' => '*',
+        'Access-Control-Allow-Methods' => 'GET, OPTIONS',
+        'Access-Control-Allow-Headers' => 'Content-Type, Accept',
+        'Access-Control-Max-Age' => '86400',
+    ];
+
     public function process(Request $request, callable $handler): Response
     {
-        // Dodajemy CORS headers do odpowiedzi
+        if ($request->method() === 'OPTIONS') {
+            return new Response(204, self::CORS_HEADERS);
+        }
+
         /** @var Response $response */
         $response = $handler($request);
-
-        $response->withHeaders([
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Methods' => 'GET, OPTIONS',
-            'Access-Control-Allow-Headers' => 'Content-Type, Accept',
-            'Access-Control-Max-Age' => '86400',
-        ]);
+        $response->withHeaders(self::CORS_HEADERS);
 
         return $response;
     }

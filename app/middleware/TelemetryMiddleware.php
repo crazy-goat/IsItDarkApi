@@ -15,6 +15,10 @@ class TelemetryMiddleware implements MiddlewareInterface
 {
     private const array IGNORED_PATHS = ['/health'];
 
+    public function __construct(private readonly OpenTelemetryService $otel)
+    {
+    }
+
     public function process(Request $request, callable $handler): Response
     {
         if (in_array($request->path(), self::IGNORED_PATHS, true)) {
@@ -23,7 +27,7 @@ class TelemetryMiddleware implements MiddlewareInterface
             return $response;
         }
 
-        $otel = OpenTelemetryService::getInstance();
+        $otel = $this->otel;
         $startTime = hrtime(true);
 
         $span = $otel->tracer()
