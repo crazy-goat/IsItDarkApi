@@ -28,7 +28,7 @@ class ApiErrorMiddlewareTest extends TestCase
     public function testPassesThroughSuccessfulApiResponse(): void
     {
         $request = $this->createRequest('/api/v1/is-dark');
-        $handler = fn() => new Response(200, [], '{"ok":true}');
+        $handler = fn(): \Webman\Http\Response => new Response(200, [], '{"ok":true}');
 
         $response = $this->middleware->process($request, $handler);
 
@@ -39,7 +39,7 @@ class ApiErrorMiddlewareTest extends TestCase
     public function testFormats4xxApiError(): void
     {
         $request = $this->createRequest('/api/v1/is-dark');
-        $handler = fn() => new Response(404);
+        $handler = fn(): \Webman\Http\Response => new Response(404);
 
         $response = $this->middleware->process($request, $handler);
 
@@ -54,7 +54,7 @@ class ApiErrorMiddlewareTest extends TestCase
     {
         $request = $this->createRequest('/some-page');
         $originalBody = '<h1>Not Found</h1>';
-        $handler = fn() => new Response(404, [], $originalBody);
+        $handler = fn(): \Webman\Http\Response => new Response(404, [], $originalBody);
 
         $response = $this->middleware->process($request, $handler);
 
@@ -87,7 +87,7 @@ class ApiErrorMiddlewareTest extends TestCase
     public function testFormatsErrorAsXmlWhenRequested(): void
     {
         $request = $this->createRequest('/api/v1/is-dark', 'application/xml');
-        $handler = fn() => new Response(400);
+        $handler = fn(): \Webman\Http\Response => new Response(400);
 
         $response = $this->middleware->process($request, $handler);
 

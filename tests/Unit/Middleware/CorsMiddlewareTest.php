@@ -27,7 +27,7 @@ class CorsMiddlewareTest extends TestCase
     public function testOptionsPreflightReturns204(): void
     {
         $request = $this->createRequest('OPTIONS', '/api/v1/is-dark');
-        $handler = fn() => new Response(200, [], 'should not reach');
+        $handler = fn(): \Webman\Http\Response => new Response(200, [], 'should not reach');
 
         $response = $this->middleware->process($request, $handler);
 
@@ -38,7 +38,7 @@ class CorsMiddlewareTest extends TestCase
     public function testOptionsPreflightHasCorsHeaders(): void
     {
         $request = $this->createRequest('OPTIONS', '/api/v1/is-dark');
-        $handler = fn() => new Response(200);
+        $handler = fn(): \Webman\Http\Response => new Response(200);
 
         $response = $this->middleware->process($request, $handler);
 
@@ -52,7 +52,7 @@ class CorsMiddlewareTest extends TestCase
     public function testGetRequestHasCorsHeaders(): void
     {
         $request = $this->createRequest('GET', '/api/v1/is-dark');
-        $handler = fn() => new Response(200, [], 'ok');
+        $handler = fn(): \Webman\Http\Response => new Response(200, [], 'ok');
 
         $response = $this->middleware->process($request, $handler);
 
@@ -64,7 +64,7 @@ class CorsMiddlewareTest extends TestCase
     {
         $request = $this->createRequest('GET', '/test');
         $handlerCalled = false;
-        $handler = function () use (&$handlerCalled) {
+        $handler = function () use (&$handlerCalled): \Webman\Http\Response {
             $handlerCalled = true;
             return new Response(200, [], 'handler response');
         };
