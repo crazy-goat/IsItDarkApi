@@ -348,7 +348,7 @@
 
         // Map functions
         function loadMap() {
-            fetch('/map/world-detailed.svg')
+            fetch('/map/world.svg')
                 .then(r => r.text())
                 .then(svg => {
                     const parser = new DOMParser();
