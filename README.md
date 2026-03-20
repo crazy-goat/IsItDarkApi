@@ -163,8 +163,30 @@ Set format via `Accept` header:
 
 ### Response Headers
 
-- `Expires` - Timestamp until which the response is valid
-- `Cache-Control` - Cache duration
+- `Expires` - Timestamp until which the response is valid (equals `next_change_at` from response body)
+- `Cache-Control` - Cache duration in seconds
+
+Responses are automatically cached until the next solar event (sunrise or sunset). You can use these headers to avoid unnecessary requests:
+
+```bash
+# Check cache headers
+curl -I "http://localhost:8787/api/v1/is-dark?lat=52.23&lng=21.01"
+
+# Example response headers:
+# Expires: Fri, 20 Mar 2026 18:42:00 GMT
+# Cache-Control: max-age=3542
+```
+
+**JavaScript example using cache:**
+
+```javascript
+const response = await fetch(
+  'http://localhost:8787/api/v1/is-dark?lat=52.23&lng=21.01'
+);
+const maxAge = response.headers.get('Cache-Control'); // "max-age=3542"
+const data = await response.json();
+// data.next_change_at contains Unix timestamp of next solar event
+```
 
 ## Installation
 
