@@ -35,17 +35,17 @@ curl -H "Accept: application/x-yaml" "http://localhost:8787/api/v1/is-dark?lat=5
 
 ### Code Examples
 
-**JavaScript (fetch)**
+#### JavaScript (fetch)
 
 ```javascript
 const response = await fetch(
   'http://localhost:8787/api/v1/is-dark?lat=52.23&lng=21.01'
 );
 const data = await response.json();
-console.log(data.is_dark); // true or false
+console.log(data.is_dark); // boolean
 ```
 
-**JavaScript with detailed data**
+#### JavaScript with detailed data
 
 ```javascript
 const response = await fetch(
@@ -55,7 +55,7 @@ const data = await response.json();
 console.log(data.state); // "day", "night", "civil_twilight", etc.
 ```
 
-**Python**
+#### Python
 
 ```python
 import requests
@@ -68,7 +68,7 @@ data = response.json()
 print(data['is_dark'])  # True or False
 ```
 
-**Python with XML response**
+#### Python with XML response
 
 ```python
 import requests
